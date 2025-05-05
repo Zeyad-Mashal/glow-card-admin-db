@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./Foundation.css";
 import AddFoundation from "../../API/Foundation/AddFoundation.api";
-import image from "../../images/wsta.png";
 import GetAllFoundations from "../../API/Foundation/GetAllFoundations.api";
-import DeleteFoundations from "../../API/Foundation/deleteFoundations.api";
+import DeleteFoundations from "../../API/Foundation/DeleteFoundations.api";
 import GetCities from "../../API/City/GetCities.api";
 import GetRegion from "../../API/Region/GetRegion.api";
 import AddLinkRegion from "../../API/Foundation/AddLinkRegion.api";
