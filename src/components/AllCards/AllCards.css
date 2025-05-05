@@ -1,0 +1,185 @@
+.cards-page {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.card_header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+.card_header input {
+  width: 35%;
+  padding: 10px;
+  border: 1px solid #007bff;
+  outline: none;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  margin-left: 10px;
+}
+.search_btn {
+  width: 120px;
+  border: #007bff;
+  background-color: #007bff;
+  color: #f5f5f5;
+  padding: 10px;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 600px;
+  max-width: 95%;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.two-columns-form .form-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.two-columns-form input,
+.two-columns-form select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.add-card-btn {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.card_list {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.cards-table {
+  min-width: 0px; /* خليه أوسع علشان يبان السكول في الموبايل */
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+}
+
+.cards-table th,
+.cards-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cards-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+.paginatoin_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem 0;
+}
+.paginatoin_container > span {
+  background-color: #dc3545;
+  color: #f5f5f5;
+  padding: 5px 15px;
+}
+.pagination {
+  padding: 10px;
+  background-color: #007bff;
+  color: #f5f5f5;
+  border: none;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.pagination:disabled {
+  background-color: rgba(0, 123, 255, 0.5);
+}
+.filter_model {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 1rem;
+}
+.filter_model button {
+  background-color: #000;
+  color: #f5f5f5;
+  padding: 10px;
+  border-radius: 16px;
+  width: 100px;
+  border: none;
+}
+.filter_flex,
+.custom_filter {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filter_flex label,
+.custom_filter label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.filter_flex label input,
+.custom_filter label input {
+  width: 30px;
+}

@@ -1,0 +1,174 @@
+/* الحاوية الرئيسية */
+.ads-container {
+  padding: 20px;
+  display: flex;
+  justify-content: center; /* يخلي الزرار في النص أفقي */
+  align-items: center; /* يخلي الزرار في النص عمودي */
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* زرار إضافة إعلان */
+.add-ad-btn {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.add-ad-btn:hover {
+  background-color: #45a049; /* لما تحط الماوس عليه */
+}
+
+/* الغطاء (Overlay) بتاع المودال */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* خلفية شفافة سودا */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* المودال نفسه */
+.modal {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+  height: auto;
+  max-width: 90%;
+  max-height: 90vh; /* ارتفاع طبيعي */
+  overflow-y: auto; /* لو الفورم طويل */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease;
+}
+
+/* أنيميشن ظهور المودال */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* مجموعات الفورم */
+.form-group {
+  margin-bottom: 15px;
+}
+
+/* الليبل بتاع الفورم */
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+/* الانبوتات بتاعة الفورم */
+.form-group input[type="text"],
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* مكان عرض الصورة */
+.image-preview img {
+  width: 100%;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+/* أزرار الحفظ والإلغاء */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* زرار الحفظ */
+.save-btn {
+  padding: 10px 20px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: #1976d2;
+}
+
+/* زرار الإلغاء */
+.cancel-btn {
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #d32f2f;
+}
+
+.banners_list {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.banner_item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 300px;
+  background-color: #fff;
+  box-shadow: 4px 4px 10px #aaa;
+  border-radius: 16px;
+  padding: 1rem;
+  gap: 1rem;
+}
+.banner_item img {
+  width: 100%;
+  height: auto;
+}
+.banner_btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+.banner_btns button {
+  padding: 10px;
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+}
+.banner_btns button:last-of-type {
+  background-color: #d32f2f;
+}
