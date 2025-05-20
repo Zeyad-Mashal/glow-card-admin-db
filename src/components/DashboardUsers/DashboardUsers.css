@@ -127,3 +127,45 @@
 .cancel-btn:hover {
   background-color: #c82333;
 }
+.prod {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.remove_btn {
+  background: rgb(217, 0, 0);
+  transition: 0.3s ease;
+}
+.remove_btn:hover {
+  background: red;
+}
+.sales_info {
+  background: green;
+}
+.remove_btns {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+.remove_btns button {
+  width: 200px;
+  padding: 10px;
+  border: none;
+  border-radius: 16px;
+  background-color: green;
+  color: #fff;
+  font-size: 18px;
+}
+.remove_btns button:first-child {
+  background-color: #ccc;
+  color: #000;
+  width: 100px;
+  transition: 0.3s ease;
+}
+.remove_btns button:first-child:hover {
+  background-color: #c82333;
+  color: #fff;
+}

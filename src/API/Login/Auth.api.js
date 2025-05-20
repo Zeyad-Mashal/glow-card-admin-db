@@ -7,6 +7,7 @@ const Auth = async (setloading, setError, data, navigate) => {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
+                "accept-language": "ar"
             },
             body: JSON.stringify(data),
         });
@@ -25,6 +26,8 @@ const Auth = async (setloading, setError, data, navigate) => {
                 console.log(result.message);
                 setError(result.message)
                 setloading(false);
+            } else if (response.status == 500) {
+                console.log(result.message)
             }
             setloading(false)
         }
