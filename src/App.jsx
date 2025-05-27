@@ -10,13 +10,14 @@ import Ads from "./components/Ads/Ads";
 import AllCards from "./components/AllCards/AllCards";
 import SendAds from "./components/SendAds/SendAds";
 import DashboardUsers from "./components/DashboardUsers/DashboardUsers";
+import Home from "./components/Home/Home";
 function App() {
   return (
     <Router>
       <Navbar />
       <div className="container mt-5">
         <Routes>
-          <Route path="/" element={<h1>Home Page</h1>} />
+          <Route path="/" element={<Home />} />
           <Route path="/city" element={<City />} />
           <Route path="/region/:id" element={<Region />} />
           <Route path="/foundation" element={<Foundation />} />
