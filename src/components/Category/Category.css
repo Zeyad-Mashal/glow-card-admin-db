@@ -1,0 +1,150 @@
+/* نظام ألوان بسيط */
+:root {
+  --primary: #0d6efd;
+  --danger: #dc3545;
+  --bg: #f8f9fa;
+  --text: #212529;
+  --radius: 8px;
+}
+
+/* reset صغير */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.category {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.category_container {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* أزرار */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-inline-end: 0.25rem;
+  transition: opacity 0.2s;
+}
+.btn:hover {
+  opacity: 0.85;
+}
+
+.primary {
+  background: var(--primary);
+  color: #fff;
+}
+.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* جدول */
+.table_wrapper {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid #e9ecef;
+}
+th {
+  background: #e9ecef;
+  font-weight: 600;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.empty {
+  text-align: center;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: var(--radius);
+}
+
+/* المودال */
+.modal_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h2 {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.75rem;
+  text-align: start;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: var(--radius);
+  margin-top: 0.25rem;
+}
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (min-width: 600px) {
+  /* تحسينات لديسكتوب */
+  .btn {
+    font-size: 1rem;
+  }
+  th,
+  td {
+    padding: 1rem;
+  }
+  .modal {
+    padding: 2rem;
+  }
+}

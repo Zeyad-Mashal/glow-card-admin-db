@@ -11,11 +11,13 @@ import AllCards from "./components/AllCards/AllCards";
 import SendAds from "./components/SendAds/SendAds";
 import DashboardUsers from "./components/DashboardUsers/DashboardUsers";
 import Home from "./components/Home/Home";
+import Category from "./components/Category/Category";
+import Coupon from "./components/Copoun/Coupon";
 function App() {
   return (
     <Router>
       <Navbar />
-      <div className="container mt-5">
+      <div className="mt-5">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/city" element={<City />} />
@@ -27,6 +29,8 @@ function App() {
           <Route path="/cards" element={<AllCards />} />
           <Route path="/send-Ads" element={<SendAds />} />
           <Route path="/users" element={<DashboardUsers />} />
+          <Route path="/category_copoun" element={<Category />} />
+          <Route path="/coupon" element={<Coupon />} />
         </Routes>
       </div>
     </Router>

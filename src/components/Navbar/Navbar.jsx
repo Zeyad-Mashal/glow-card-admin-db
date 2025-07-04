@@ -106,6 +106,24 @@ const Navbar = () => {
               <li className="nav-item">
                 <Link
                   className="nav-link"
+                  to="/category"
+                  onClick={handleLinkClick}
+                >
+                  التصنيفات
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className="nav-link"
+                  to="/coupon"
+                  onClick={handleLinkClick}
+                >
+                  الكوبونات
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className="nav-link"
                   to="/users"
                   onClick={handleLinkClick}
                 >

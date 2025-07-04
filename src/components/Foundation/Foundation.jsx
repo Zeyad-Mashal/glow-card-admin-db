@@ -35,7 +35,7 @@ const Foundation = () => {
   const [allFiles, setAllFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [cityId, setCityId] = useState("");
   // العناوين
   const [arabicAddress, setArabicAddress] = useState("");
   const [englishAddress, setEnglishAddress] = useState("");
@@ -107,7 +107,8 @@ const Foundation = () => {
       phone == "" ||
       password == "" ||
       address.length == 0 ||
-      offers.length == 0
+      offers.length == 0 ||
+      cityId == ""
     ) {
       alert("يرجى ملء جميع الحقول المطلوبة");
       return;
@@ -125,6 +126,7 @@ const Foundation = () => {
     data.append("email", email);
     data.append("phone", phone);
     data.append("password", password);
+    data.append("city", cityId);
     // هنا نضيف العناوين بشكل صحيح
     address.forEach((addr, index) => {
       data.append(`address[${index}][en]`, addr.en);
@@ -175,6 +177,15 @@ const Foundation = () => {
     const cityId = allCities.filter((city) => city.name.ar === value)[0]._id;
     if (cityId) {
       GetRegion(setLoading, setError, setAllRegions, cityId);
+    } else {
+      alert("City Id Is Not Found..!");
+    }
+  };
+
+  const getCityId = (value) => {
+    const cityId = allCities.filter((city) => city.name.ar === value)[0]._id;
+    if (cityId) {
+      setCityId(cityId);
     } else {
       alert("City Id Is Not Found..!");
     }
@@ -453,6 +464,17 @@ const Foundation = () => {
                   ))}
                 </div>
               </div>
+
+              <select onChange={(e) => getCityId(e.target.value)}>
+                <option value="اختر المدينه">اختر المدينه</option>
+                {allCities.map((item, index) => {
+                  return (
+                    <option value={item.name.ar} key={index}>
+                      {item.name.ar}
+                    </option>
+                  );
+                })}
+              </select>
             </form>
             {error}
             <button className="submit-btn" onClick={handleSubmit}>
