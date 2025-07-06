@@ -3,3 +3,23 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* نفس قيمك السابقة للسايدبار */
+.sidebar {
+  width: 240px;
+}
+.sidebar.collapsed {
+  width: 72px;
+}
+
+/* هنا مهمّتنا */
+.content {
+  margin-left: 240px; /* يوازي عرض السايدبار المفتوح */
+  padding: 1.5rem; /* أي هوامش داخلية تحبها */
+  min-height: 100vh; /* ليملأ الصفحة */
+  transition: margin-left 0.25s ease;
+}
+
+/* عندما يُطوى السايدبار */
+.content.collapsed {
+  margin-left: 72px; /* يوازي العرض المصغَّر */
+}

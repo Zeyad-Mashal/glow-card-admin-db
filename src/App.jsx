@@ -1,7 +1,6 @@
 import "./App.css";
 import City from "./components/City/City";
 import Login from "./components/Login/Loing";
-import Navbar from "./components/Navbar/Navbar";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Region from "./components/Region/Region";
 import Foundation from "./components/Foundation/Foundation";
@@ -13,11 +12,11 @@ import DashboardUsers from "./components/DashboardUsers/DashboardUsers";
 import Home from "./components/Home/Home";
 import Category from "./components/Category/Category";
 import Coupon from "./components/Copoun/Coupon";
+import Layout from "./components/Layout/Layout";
 function App() {
   return (
     <Router>
-      <Navbar />
-      <div className="mt-5">
+      <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/city" element={<City />} />
@@ -29,10 +28,10 @@ function App() {
           <Route path="/cards" element={<AllCards />} />
           <Route path="/send-Ads" element={<SendAds />} />
           <Route path="/users" element={<DashboardUsers />} />
-          <Route path="/category_copoun" element={<Category />} />
+          <Route path="/category" element={<Category />} />
           <Route path="/coupon" element={<Coupon />} />
         </Routes>
-      </div>
+      </Layout>
     </Router>
   );
 }

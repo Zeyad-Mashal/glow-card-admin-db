@@ -1,0 +1,131 @@
+/* الأساسيات */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 240px; /* عرض الشريط عندما يكون مفتوح */
+  background: #0f0f0f; /* نفس لون الـ navbar القديم */
+  color: #fff;
+  padding-top: 0.75rem;
+  overflow-x: hidden;
+  transition: width 0.25s ease;
+  z-index: 1040; /* أعلى من محتوى الصفحة */
+  display: flex;
+  flex-direction: column;
+}
+
+/* عند الطي */
+.sidebar.collapsed {
+  width: 72px; /* يبقى مكان للوجو والأيقونات فقط */
+}
+
+/* رأس الشريط */
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  white-space: nowrap;
+}
+
+/* زر الطي */
+.toggle-btn {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  position: relative;
+}
+
+.toggle-btn .line,
+.toggle-btn .line::before,
+.toggle-btn .line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  background: #fff;
+  transition: transform 0.25s;
+}
+
+.toggle-btn .line {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.toggle-btn .line::before {
+  top: -6px;
+  transform: translateX(-50%);
+}
+.toggle-btn .line::after {
+  top: 6px;
+  transform: translateX(-50%);
+}
+
+/* عند الطي نحرك الخط الأوسط ليبدو سهمًا */
+.toggle-btn .line.rotated::before {
+  transform: translate(-50%, 0) rotate(45deg);
+}
+.toggle-btn .line.rotated::after {
+  transform: translate(-50%, 0) rotate(-45deg);
+}
+.toggle-btn.closed {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+}
+/* قائمة الروابط */
+.nav {
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.nav a:hover,
+.nav a.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* عند الطي نخفي النص ونضبط المحاذاة */
+.sidebar.collapsed .nav a span {
+  display: none;
+}
+
+.sidebar.collapsed .nav a {
+  justify-content: center;
+}
+
+/* -------- محتوى الصفحة الرئيسي -------- */
+.main-content {
+  margin-left: 240px; /* نفس عرض الشريط المفتوح */
+  padding: 1.5rem;
+  transition: margin-left 0.25s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: 72px; /* يتماشى مع الشريط المطوي */
+}

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./Coupon.css";
 import CreateCoupon from "../../API/Coupon/CreateCoupon";
 import GetCoupons from "../../API/Coupon/GetCoupons";
+import EditCoupon from "../../API/Coupon/EditCoupon";
+import DeleteCoupon from "../../API/Coupon/DeleteCoupon";
 /* شكل الكوبون الابتدائي */
 const initForm = {
   coupon: "",
@@ -26,10 +28,11 @@ const Coupon = () => {
   const openAdd = () => (
     setForm(initForm), setModal({ type: "add", open: true, id: null })
   );
-  const openEdit = (c) => (
-    setForm({ ...c }), setModal({ type: "edit", open: true, id: c.id })
-  );
-  const openDel = (c) => setModal({ type: "del", open: true, id: c.id });
+  const openEdit = (c) => {
+    setForm({ ...c });
+    setModal({ type: "edit", open: true, id: c._id });
+  };
+  const openDel = (c) => setModal({ type: "del", open: true, id: c._id });
   const closeModal = () => setModal({ type: null, open: false, id: null });
 
   /* تغيّر الحقول */
@@ -61,9 +64,24 @@ const Coupon = () => {
 
   /* تعديل كوبون */
   const handleUpdate = () => {
-    const id = modal.id;
-    setCoupons(coupons.map((c) => (c.id === id ? { ...form, id } : c)));
-    // استدعِ API التعديل هنا: EditCouponApi(...)
+    const id = modal.id; // ← الـ id المحفوظ
+
+    // تحقُّق سريع من إدخال القيم
+    if (!form.coupon.trim() || !form.discount) return;
+
+    /* الكائن المطلوب للـ API */
+    const data = {
+      coupon: form.coupon.trim(), // "cv56Kc"
+      discount: Number(form.discount), // 15
+    };
+
+    // تحدّث الحالة محلياً (اختياري إذا كنت تجلب بعد التعديل)
+    setCoupons(coupons.map((c) => (c.id === id ? { ...c, ...data } : c)));
+
+    // استدعاء خدمة التعديل
+    EditCoupon(setloading, setError, id, setModal, getAllCoupons, data);
+
+    // إغلاق المودال
     closeModal();
   };
 
@@ -71,7 +89,7 @@ const Coupon = () => {
   const handleDelete = () => {
     const id = modal.id;
     setCoupons(coupons.filter((c) => c.id !== id));
-    // استدعِ API الحذف هنا: DeleteCouponApi(...)
+    DeleteCoupon(setloading, setError, id, setModal, getAllCoupons);
     closeModal();
   };
 

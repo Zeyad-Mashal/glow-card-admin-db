@@ -7,10 +7,12 @@ import GetCities from "../../API/City/GetCities.api";
 import GetRegion from "../../API/Region/GetRegion.api";
 import AddLinkRegion from "../../API/Foundation/AddLinkRegion.api";
 import RemoveLinkedRegion from "../../API/Foundation/RemoveLinkedRegion.api";
+import AllCategories from "../../API/Category/AllCategories";
 const Foundation = () => {
   useEffect(() => {
     getAllFoundations();
     getAllCities();
+    getAllCategories();
   }, []);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -42,6 +44,11 @@ const Foundation = () => {
   const [googleMapLink, setGoogleMapLink] = useState("");
   const [address, setAddress] = useState([]);
 
+  const [allCategories, setAllCategories] = useState([]);
+  const [categoriesIds, setCategoriesIds] = useState([]);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoriesName, setCategoriesName] = useState([]);
+
   // العروض
   const [arabicOffer, setArabicOffer] = useState("");
   const [englishOffer, setEnglishOffer] = useState("");
@@ -67,6 +74,24 @@ const Foundation = () => {
       setEnglishAddress("");
       setGoogleMapLink("");
     }
+  };
+
+  const handleAddCategory = (e) => {
+    e.preventDefault();
+    if (categoryName !== "") {
+      const categoryId = allCategories.filter(
+        (category) => category.name === categoryName
+      )[0]._id;
+      setCategoriesIds((prev) => [...prev, categoryId]);
+      setCategoriesName((prev) => [...prev, categoryName]);
+    } else {
+      alert("يجب اختيار التصنيف اولا");
+    }
+  };
+
+  const removeCategoryId = (index) => {
+    setCategoriesIds((prev) => prev.filter((_, i) => i !== index));
+    setCategoriesName((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleDeleteAddress = (index) => {
@@ -139,6 +164,9 @@ const Foundation = () => {
       data.append(`offers[${index}][ar]`, offer.ar);
       data.append(`offers[${index}][offer]`, offer.offer);
     });
+    categoriesIds.forEach((category, index) => {
+      data.append(`categories[${index}]`, category);
+    });
 
     AddFoundation(setLoading, setError, data, setShowModal, getAllFoundations);
   };
@@ -149,6 +177,9 @@ const Foundation = () => {
 
   const getAllCities = () => {
     GetCities(setLoading, setError, setAllCities);
+  };
+  const getAllCategories = () => {
+    AllCategories(setLoading, setError, setAllCategories);
   };
 
   const openDelete = (foundation) => {
@@ -290,6 +321,32 @@ const Foundation = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                </div>
+              </div>
+
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>التصنيفات</label>
+                  <select onChange={(e) => setCategoryName(e.target.value)}>
+                    {allCategories.map((item, index) => {
+                      return (
+                        <option value={item.name} key={index}>
+                          {item.name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <button onClick={(e) => handleAddCategory(e)}>اضافه</button>
+                  <div className="category_items">
+                    {categoriesName.map((category, index) => {
+                      return (
+                        <p key={index}>
+                          {category}{" "}
+                          <span onClick={() => removeCategoryId(index)}>X</span>
+                        </p>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

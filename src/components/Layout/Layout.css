@@ -1,0 +1,10 @@
+/* يعادل sidebar المفتوح والمطوى – تأكد أن نفس القيم فى Navbar.css */
+.content {
+  margin-left: 240px; /* عرض السايدبار المفتوح */
+  padding: 1.5rem;
+  transition: margin-left 0.25s ease;
+  min-height: 100vh;
+}
+.content.collapsed {
+  margin-left: 72px; /* عرض السايدبار المطوى */
+}

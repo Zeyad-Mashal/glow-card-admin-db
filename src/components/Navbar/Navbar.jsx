@@ -1,149 +1,99 @@
-import React, { useRef } from "react";
+// src/components/Navbar/Navbar.jsx
+import React from "react";
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHome,
+  faPlus,
+  faCity,
+  faBuilding,
+  faBullhorn,
+  faCreditCard,
+  faPaperPlane,
+  faTags,
+  faTicket,
+  faUsers,
+  faSignInAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import "./Navbar.css";
 
-const Navbar = () => {
-  const offcanvasRef = useRef(null);
-
-  const handleLinkClick = () => {
-    if (offcanvasRef.current) {
-      const offcanvas = new window.bootstrap.Offcanvas(offcanvasRef.current);
-      offcanvas.hide();
-    }
-  };
+const Navbar = ({ collapsed, setCollapsed }) => {
+  const open = !collapsed; // للوضوح
 
   return (
-    <nav className="navbar navbar-dark bg-dark fixed-top">
-      <div className="container-fluid">
-        <Link className="navbar-brand" to="/">
-          Glow Card
-        </Link>
+    <aside className={`sidebar ${open ? "" : "collapsed"}`}>
+      {/* الرأس */}
+      <div className="sidebar__top">
+        <span className="logo">Glow&nbsp;Card</span>
+
         <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#offcanvasDarkNavbar"
-          aria-controls="offcanvasDarkNavbar"
-          aria-label="Toggle navigation"
+          className={`toggle-btn ${open ? "opened" : "closed"}`}
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label="Toggle sidebar"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className={`line ${open ? "" : "rotated"}`} />
         </button>
-        <div
-          className="offcanvas offcanvas-end text-bg-dark"
-          tabindex="-1"
-          id="offcanvasDarkNavbar"
-          aria-labelledby="offcanvasDarkNavbarLabel"
-          ref={offcanvasRef}
-        >
-          <div className="offcanvas-header">
-            <h5 className="offcanvas-title" id="offcanvasDarkNavbarLabel">
-              Glow Card
-            </h5>
-            <button
-              type="button"
-              className="btn-close btn-close-white"
-              data-bs-dismiss="offcanvas"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="offcanvas-body">
-            <ul className="navbar-nav justify-content-end flex-grow-1 pe-3">
-              <li className="nav-item">
-                <Link
-                  className="nav-link active"
-                  aria-current="page"
-                  to="/"
-                  onClick={handleLinkClick}
-                >
-                  Home
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/product"
-                  onClick={handleLinkClick}
-                >
-                  اضافة منتج
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/city" onClick={handleLinkClick}>
-                  اضافة مدينة
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/foundation"
-                  onClick={handleLinkClick}
-                >
-                  اضافة المؤسسة
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/ads" onClick={handleLinkClick}>
-                  اضافة اعلان
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/cards"
-                  onClick={handleLinkClick}
-                >
-                  جميع البطاقات
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/send-Ads"
-                  onClick={handleLinkClick}
-                >
-                  ارسال اعلانات
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/category"
-                  onClick={handleLinkClick}
-                >
-                  التصنيفات
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/coupon"
-                  onClick={handleLinkClick}
-                >
-                  الكوبونات
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/users"
-                  onClick={handleLinkClick}
-                >
-                  المستخدمين
-                </Link>
-              </li>
-              <li className="nav-item">
-                <Link
-                  className="nav-link"
-                  to="/login"
-                  onClick={handleLinkClick}
-                >
-                  login
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
-    </nav>
+
+      {/* الروابط */}
+      <ul className="nav">
+        <li>
+          <Link to="/">
+            <FontAwesomeIcon icon={faHome} /> <span>الرئيسية</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/product">
+            <FontAwesomeIcon icon={faPlus} /> <span>إضافة منتج</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/city">
+            <FontAwesomeIcon icon={faCity} /> <span>إضافة مدينة</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/foundation">
+            <FontAwesomeIcon icon={faBuilding} /> <span>إضافة مؤسسة</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/ads">
+            <FontAwesomeIcon icon={faBullhorn} /> <span>إضافة إعلان</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/cards">
+            <FontAwesomeIcon icon={faCreditCard} /> <span>جميع البطاقات</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/send-Ads">
+            <FontAwesomeIcon icon={faPaperPlane} /> <span>إرسال إعلانات</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/category">
+            <FontAwesomeIcon icon={faTags} /> <span>التصنيفات</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/coupon">
+            <FontAwesomeIcon icon={faTicket} /> <span>الكوبونات</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/users">
+            <FontAwesomeIcon icon={faUsers} /> <span>المستخدمون</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/login">
+            <FontAwesomeIcon icon={faSignInAlt} /> <span>تسجيل الدخول</span>
+          </Link>
+        </li>
+      </ul>
+    </aside>
   );
 };
 
