@@ -81,6 +81,7 @@ const Product = () => {
     data.append("discount", formData.discount);
     data.append("originalPrice", formData.priceBefore);
     data.append("type", formData.type);
+    // data.append("offers", true);
 
     AddProduct(setLoading, setError, data, setShowAddModal, getAllProducts);
   };
