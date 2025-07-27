@@ -14,6 +14,7 @@ import {
   faTicket,
   faUsers,
   faSignInAlt,
+  faFileSignature,
 } from "@fortawesome/free-solid-svg-icons";
 import "./Navbar.css";
 
@@ -80,6 +81,12 @@ const Navbar = ({ collapsed, setCollapsed }) => {
         <li>
           <Link to="/coupon">
             <FontAwesomeIcon icon={faTicket} /> <span>الكوبونات</span>
+          </Link>
+        </li>
+        <li>
+          <Link to="/contacts">
+            <FontAwesomeIcon icon={faFileSignature} />
+            <span>طلبات انضمام الشركات</span>
           </Link>
         </li>
         <li>

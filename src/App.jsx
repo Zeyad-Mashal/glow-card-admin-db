@@ -13,6 +13,7 @@ import Home from "./components/Home/Home";
 import Category from "./components/Category/Category";
 import Coupon from "./components/Copoun/Coupon";
 import Layout from "./components/Layout/Layout";
+import Contacts from "./components/Contacts/Contacts";
 function App() {
   return (
     <Router>
@@ -30,6 +31,7 @@ function App() {
           <Route path="/users" element={<DashboardUsers />} />
           <Route path="/category" element={<Category />} />
           <Route path="/coupon" element={<Coupon />} />
+          <Route path="/contacts" element={<Contacts />} />
         </Routes>
       </Layout>
     </Router>
