@@ -858,6 +858,7 @@ const Foundation = () => {
                 <div className="foundation_item" key={index}>
                   <img src={item.images[0]} alt="" />
                   <h3>{item.name.ar}</h3>
+                  <span>{item._id}</span>
                   <div className="foundation_btns">
                     <button onClick={() => setShowUpdateModal(true)}>
                       تعديل
