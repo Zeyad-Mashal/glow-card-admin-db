@@ -20,7 +20,10 @@ import "./Navbar.css";
 
 const Navbar = ({ collapsed, setCollapsed }) => {
   const open = !collapsed; // للوضوح
-
+  const logout = () => {
+    localStorage.removeItem("token");
+    window.location.reload();
+  };
   return (
     <aside className={`sidebar ${open ? "" : "collapsed"}`}>
       {/* الرأس */}
@@ -101,7 +104,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
             <FontAwesomeIcon icon={faUsers} /> <span>المستخدمون</span>
           </Link>
         </li>
-        <li>
+        <li onClick={logout}>
           <Link to="/login">
             <FontAwesomeIcon icon={faSignInAlt} /> <span>تسجيل الدخول</span>
           </Link>

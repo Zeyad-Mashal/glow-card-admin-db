@@ -17,7 +17,7 @@ const Auth = async (setloading, setError, data, navigate) => {
         if (response.ok) {
             setloading(false);
             localStorage.setItem('token', result.token);
-            navigate(`/`);
+            window.location.href = "/";
         } else {
             if (response.status == 403) {
                 setError(result.message)

@@ -1,0 +1,34 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+}
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px; /* العرض الثابت */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h2 {
+  color: #333;
+}
+
+.form-label {
+  color: #555;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
