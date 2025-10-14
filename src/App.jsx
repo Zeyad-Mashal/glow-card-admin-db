@@ -14,6 +14,7 @@ import Category from "./components/Category/Category";
 import Coupon from "./components/Copoun/Coupon";
 import Layout from "./components/Layout/Layout";
 import Contacts from "./components/Contacts/Contacts";
+import RequestCompany from "./components/RequestCompany/RequestCompany";
 function App() {
   return (
     <Router>
@@ -32,6 +33,7 @@ function App() {
           <Route path="/category" element={<Category />} />
           <Route path="/coupon" element={<Coupon />} />
           <Route path="/contacts" element={<Contacts />} />
+          <Route path="/getRequest" element={<RequestCompany />} />
         </Routes>
       </Layout>
     </Router>

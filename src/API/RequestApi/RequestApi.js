@@ -1,7 +1,7 @@
-const URL = "https://glow-card.onrender.com/api/v1/contact/get?type=User";
+const URL = "https://glow-card.onrender.com/api/v1/contact/get?type=Company";
 const token = localStorage.getItem('token');
 
-const GetContact = async (setloading, setError, setAllContacts) => {
+const RequestApi = async (setloading, setError, setAllContacts) => {
     setloading(true)
     try {
         const response = await fetch(URL, {
@@ -33,4 +33,4 @@ const GetContact = async (setloading, setError, setAllContacts) => {
         setloading(false)
     }
 }
-export default GetContact;
+export default RequestApi;

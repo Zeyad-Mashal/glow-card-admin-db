@@ -90,6 +90,12 @@ const Navbar = ({ collapsed, setCollapsed }) => {
           </Link>
         </li>
         <li>
+          <Link to="/getRequest">
+            <FontAwesomeIcon icon={faFileSignature} />
+            <span>طلبات بطاقه الشركات</span>
+          </Link>
+        </li>
+        <li>
           <Link to="/users">
             <FontAwesomeIcon icon={faUsers} /> <span>المستخدمون</span>
           </Link>
