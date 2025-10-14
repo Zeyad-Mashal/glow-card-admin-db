@@ -79,6 +79,12 @@ const Navbar = ({ collapsed, setCollapsed }) => {
           </Link>
         </li>
         <li>
+          <Link to="/getRequest">
+            <FontAwesomeIcon icon={faFileSignature} />
+            <span>طلبات بطاقه الشركات</span>
+          </Link>
+        </li>
+        <li>
           <Link to="/coupon">
             <FontAwesomeIcon icon={faTicket} /> <span>الكوبونات</span>
           </Link>
@@ -89,12 +95,7 @@ const Navbar = ({ collapsed, setCollapsed }) => {
             <span>طلبات انضمام الشركات</span>
           </Link>
         </li>
-        <li>
-          <Link to="/getRequest">
-            <FontAwesomeIcon icon={faFileSignature} />
-            <span>طلبات بطاقه الشركات</span>
-          </Link>
-        </li>
+
         <li>
           <Link to="/users">
             <FontAwesomeIcon icon={faUsers} /> <span>المستخدمون</span>
