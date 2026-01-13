@@ -266,3 +266,62 @@ form > select {
   padding: 10px;
   border-radius: 8px;
 }
+
+/* Image Preview Controls */
+.preview-img-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.preview-img.first-image {
+  border: 3px solid #27ae60;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.5);
+}
+
+.first-image-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #27ae60;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.image-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  padding: 4px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.move-to-first-btn,
+.remove-image-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+}
+
+.move-to-first-btn:hover {
+  background-color: #27ae60;
+  color: white;
+}
+
+.remove-image-btn:hover {
+  background-color: #e74c3c;
+  color: white;
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Foundation.css";
 import AddFoundation from "../../API/Foundation/AddFoundation.api";
+import UpdateFoundation from "../../API/Foundation/UpdateFoundation.api";
 import GetAllFoundations from "../../API/Foundation/GetAllFoundations.api";
 import DeleteFoundations from "../../API/Foundation/DeleteFoundations.api";
 import GetCities from "../../API/City/GetCities.api";
@@ -60,6 +61,40 @@ const Foundation = () => {
     setAllFiles((prev) => [...prev, ...files]);
     const fileURLs = files.map((file) => URL.createObjectURL(file));
     setImages((prev) => [...prev, ...fileURLs]);
+  };
+
+  // Convert URL to File object
+  const urlToFile = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type: blob.type });
+      return file;
+    } catch (error) {
+      console.error("Error converting URL to File:", error);
+      return null;
+    }
+  };
+
+  const moveImageToFirst = (index) => {
+    if (index === 0) return; // Already first
+
+    // Reorder images
+    const newImages = [...images];
+    const imageToMove = newImages.splice(index, 1)[0];
+    newImages.unshift(imageToMove);
+    setImages(newImages);
+
+    // Reorder files
+    const newFiles = [...allFiles];
+    const fileToMove = newFiles.splice(index, 1)[0];
+    newFiles.unshift(fileToMove);
+    setAllFiles(newFiles);
+  };
+
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setAllFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleAddAddress = () => {
@@ -171,6 +206,76 @@ const Foundation = () => {
     AddFoundation(setLoading, setError, data, setShowModal, getAllFoundations);
   };
 
+  const handleUpdateSubmit = () => {
+    if (
+      arabicName == "" ||
+      englishName == "" ||
+      arDesc == "" ||
+      enDesc == "" ||
+      arSpecial == "" ||
+      enSpecial == "" ||
+      email == "" ||
+      phone == "" ||
+      address.length == 0 ||
+      offers.length == 0 ||
+      cityId == ""
+    ) {
+      alert("يرجى ملء جميع الحقول المطلوبة");
+      return;
+    }
+
+    // Check if we have images (either existing converted or new ones)
+    if (allFiles.length === 0 && images.length === 0) {
+      alert("يرجى رفع الصور أو التأكد من وجود الصور");
+      return;
+    }
+
+    let data = new FormData();
+    // Send all files in the current order (existing converted + new ones)
+    // The order in allFiles matches the order in images array
+    if (allFiles.length > 0) {
+      for (let i = 0; i < allFiles.length; i++) {
+        data.append("image", allFiles[i]);
+      }
+    }
+    data.append("arName", arabicName);
+    data.append("enName", englishName);
+    data.append("arDescription", arDesc);
+    data.append("enDescription", enDesc);
+    data.append("arSpecialty", arSpecial);
+    data.append("enSpecialty", enSpecial);
+    data.append("email", email);
+    data.append("phone", phone);
+    if (password) {
+      data.append("password", password);
+    }
+    data.append("city", cityId);
+    // هنا نضيف العناوين بشكل صحيح
+    address.forEach((addr, index) => {
+      data.append(`address[${index}][en]`, addr.en);
+      data.append(`address[${index}][ar]`, addr.ar);
+      data.append(`address[${index}][map]`, addr.map);
+    });
+    // وهنا نضيف العروض
+    offers.forEach((offer, index) => {
+      data.append(`offers[${index}][en]`, offer.en);
+      data.append(`offers[${index}][ar]`, offer.ar);
+      data.append(`offers[${index}][offer]`, offer.offer);
+    });
+    categoriesIds.forEach((category, index) => {
+      data.append(`categories[${index}]`, category);
+    });
+
+    UpdateFoundation(
+      setLoading,
+      setError,
+      foundationId,
+      setShowUpdateModal,
+      data,
+      getAllFoundations
+    );
+  };
+
   const getAllFoundations = () => {
     GetAllFoundations(setLoading, setError, setAllFoundations);
   };
@@ -186,6 +291,58 @@ const Foundation = () => {
     setFoundationId(foundation._id);
     setShowDeleteModal(true);
     console.log(foundationId);
+  };
+
+  const openUpdate = async (foundation) => {
+    setFoundationId(foundation._id);
+    setArabicName(foundation.name?.ar || "");
+    setEnglishName(foundation.name?.en || "");
+    setArDesc(foundation.description?.ar || "");
+    setEnDesc(foundation.description?.en || "");
+    setArSpecial(foundation.specialty?.ar || "");
+    setEnSpecial(foundation.specialty?.en || "");
+    setEmail(foundation.email || "");
+    setPhone(foundation.phone || "");
+    setPassword(""); // Don't populate password for security
+    setCityId(foundation.city?._id || "");
+    setAddress(foundation.address || []);
+    setOffers(foundation.offers || []);
+
+    // Set images for preview
+    setImages(foundation.images || []);
+
+    // Convert existing image URLs to File objects so they can be reordered and sent
+    if (foundation.images && foundation.images.length > 0) {
+      try {
+        const filePromises = foundation.images.map((imageUrl, index) =>
+          urlToFile(imageUrl, `image-${index}.jpg`)
+        );
+        const files = await Promise.all(filePromises);
+        // Filter out any null values (failed conversions) and ensure arrays stay in sync
+        const validFiles = files.filter((file) => file !== null);
+        // If some conversions failed, remove corresponding images to keep arrays in sync
+        if (validFiles.length !== files.length) {
+          const validImages = foundation.images.filter(
+            (_, index) => files[index] !== null
+          );
+          setImages(validImages);
+        }
+        setAllFiles(validFiles);
+      } catch (error) {
+        console.error("Error converting images to files:", error);
+        // If conversion fails completely, still show images but warn user
+        setAllFiles([]);
+        alert(
+          "تحذير: قد لا تتمكن من إعادة ترتيب الصور الموجودة. يرجى رفع الصور مرة أخرى."
+        );
+      }
+    } else {
+      setAllFiles([]);
+    }
+
+    setCategoriesIds(foundation.categories?.map((cat) => cat._id) || []);
+    setCategoriesName(foundation.categories?.map((cat) => cat.name) || []);
+    setShowUpdateModal(true);
   };
 
   const DeleteFoundationApi = () => {
@@ -260,6 +417,38 @@ const Foundation = () => {
     );
   };
 
+  const resetForm = () => {
+    setImages([]);
+    setAllFiles([]);
+    setArabicName("");
+    setEnglishName("");
+    setArDesc("");
+    setEnDesc("");
+    setArSpecial("");
+    setEnSpecial("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+    setCityId("");
+    setArabicAddress("");
+    setEnglishAddress("");
+    setGoogleMapLink("");
+    setAddress([]);
+    setArabicOffer("");
+    setEnglishOffer("");
+    setDiscountRate("");
+    setOffers([]);
+    setCategoriesIds([]);
+    setCategoriesName([]);
+    setCategoryName("");
+    setError(null);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    resetForm();
+  };
+
   return (
     <div className="foundation">
       <h1>إضافة المؤسسات</h1>
@@ -270,7 +459,7 @@ const Foundation = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <button className="close-btn" onClick={() => setShowModal(false)}>
+            <button className="close-btn" onClick={handleCloseModal}>
               ×
             </button>
 
@@ -517,7 +706,37 @@ const Foundation = () => {
                 />
                 <div className="preview-container">
                   {images.map((img, i) => (
-                    <img key={i} src={img} className="preview-img" />
+                    <div key={i} className="preview-img-wrapper">
+                      {i === 0 && (
+                        <div className="first-image-badge">الصورة الأولى</div>
+                      )}
+                      <img
+                        src={img}
+                        className={`preview-img ${
+                          i === 0 ? "first-image" : ""
+                        }`}
+                      />
+                      <div className="image-controls">
+                        {i !== 0 && (
+                          <button
+                            type="button"
+                            className="move-to-first-btn"
+                            onClick={() => moveImageToFirst(i)}
+                            title="جعلها الصورة الأولى"
+                          >
+                            ⬆️
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeImage(i)}
+                          title="حذف الصورة"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -546,7 +765,10 @@ const Foundation = () => {
           <div className="modal">
             <button
               className="close-btn"
-              onClick={() => setShowUpdateModal(false)}
+              onClick={() => {
+                setShowUpdateModal(false);
+                resetForm();
+              }}
             >
               ×
             </button>
@@ -768,14 +990,61 @@ const Foundation = () => {
                 />
                 <div className="preview-container">
                   {images.map((img, i) => (
-                    <img key={i} src={img} className="preview-img" />
+                    <div key={i} className="preview-img-wrapper">
+                      {i === 0 && (
+                        <div className="first-image-badge">الصورة الأولى</div>
+                      )}
+                      <img
+                        src={img}
+                        className={`preview-img ${
+                          i === 0 ? "first-image" : ""
+                        }`}
+                      />
+                      <div className="image-controls">
+                        {i !== 0 && (
+                          <button
+                            type="button"
+                            className="move-to-first-btn"
+                            onClick={() => moveImageToFirst(i)}
+                            title="جعلها الصورة الأولى"
+                          >
+                            ⬆️
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeImage(i)}
+                          title="حذف الصورة"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
+
+              <select
+                onChange={(e) => getCityId(e.target.value)}
+                defaultValue={
+                  allCities.find((city) => city._id === cityId)?.name.ar ||
+                  "اختر المدينه"
+                }
+              >
+                <option value="اختر المدينه">اختر المدينه</option>
+                {allCities.map((item, index) => {
+                  return (
+                    <option value={item.name.ar} key={index}>
+                      {item.name.ar}
+                    </option>
+                  );
+                })}
+              </select>
             </form>
             {error}
-            <button className="submit-btn" onClick={handleSubmit}>
-              {loading ? "جاري التحميل..." : "إضافة مؤسسة"}
+            <button className="submit-btn" onClick={handleUpdateSubmit}>
+              {loading ? "جاري التحميل..." : "تحديث مؤسسة"}
             </button>
           </div>
         </div>
@@ -860,9 +1129,7 @@ const Foundation = () => {
                   <h3>{item.name.ar}</h3>
                   <span>{item._id}</span>
                   <div className="foundation_btns">
-                    <button onClick={() => setShowUpdateModal(true)}>
-                      تعديل
-                    </button>
+                    <button onClick={() => openUpdate(item)}>تعديل</button>
                     <button onClick={() => openDelete(item)}>حذف</button>
                     <button onClick={() => openLinkRegions(item)}>
                       ربط بالمنطقة
