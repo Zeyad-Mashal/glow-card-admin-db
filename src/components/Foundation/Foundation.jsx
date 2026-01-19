@@ -451,6 +451,7 @@ const Foundation = () => {
 
   return (
     <div className="foundation">
+      <span className="foundation_counter">عدد المؤسسات: {allFoundations.length}</span>
       <h1>إضافة المؤسسات</h1>
       <button className="add-btn" onClick={() => setShowModal(true)}>
         + إضافة مؤسسة
