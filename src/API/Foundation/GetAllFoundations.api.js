@@ -1,9 +1,9 @@
-const URL = "https://glow-card.onrender.com/api/v1/foundation/get";
+const URL = "https://glow-card.onrender.com/api/v1/foundation/get?page=";
 
-const GetAllFoundations = async (setloading, setError, setAllFoundations) => {
+const GetAllFoundations = async (setloading, setError, setAllFoundations, page, setTotalPages) => {
     setloading(true)
     try {
-        const response = await fetch(URL, {
+        const response = await fetch(`${URL}${page}`, {
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -16,6 +16,9 @@ const GetAllFoundations = async (setloading, setError, setAllFoundations) => {
         if (response.ok) {
             setloading(false);
             setAllFoundations(result.foundations)
+            if (setTotalPages && result.totalPages !== undefined) {
+                setTotalPages(result.totalPages)
+            }
         } else {
             if (response.status == 400) {
                 setError(result.message)

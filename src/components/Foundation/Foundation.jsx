@@ -10,11 +10,8 @@ import AddLinkRegion from "../../API/Foundation/AddLinkRegion.api";
 import RemoveLinkedRegion from "../../API/Foundation/RemoveLinkedRegion.api";
 import AllCategories from "../../API/Category/AllCategories";
 const Foundation = () => {
-  useEffect(() => {
-    getAllFoundations();
-    getAllCities();
-    getAllCategories();
-  }, []);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(2);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,6 +46,28 @@ const Foundation = () => {
   const [categoriesIds, setCategoriesIds] = useState([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoriesName, setCategoriesName] = useState([]);
+
+  const getAllFoundations = () => {
+    GetAllFoundations(setLoading, setError, setAllFoundations, currentPage, setTotalPages);
+  };
+
+  const getAllCities = () => {
+    GetCities(setLoading, setError, setAllCities);
+  };
+
+  const getAllCategories = () => {
+    AllCategories(setLoading, setError, setAllCategories);
+  };
+
+  useEffect(() => {
+    getAllFoundations();
+    getAllCities();
+    getAllCategories();
+  }, []);
+
+  useEffect(() => {
+    getAllFoundations();
+  }, [currentPage]);
 
   // العروض
   const [arabicOffer, setArabicOffer] = useState("");
@@ -203,7 +222,10 @@ const Foundation = () => {
       data.append(`categories[${index}]`, category);
     });
 
-    AddFoundation(setLoading, setError, data, setShowModal, getAllFoundations);
+    AddFoundation(setLoading, setError, data, setShowModal, () => {
+      getAllFoundations();
+      setCurrentPage(1);
+    });
   };
 
   const handleUpdateSubmit = () => {
@@ -276,15 +298,16 @@ const Foundation = () => {
     );
   };
 
-  const getAllFoundations = () => {
-    GetAllFoundations(setLoading, setError, setAllFoundations);
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
-  const getAllCities = () => {
-    GetCities(setLoading, setError, setAllCities);
-  };
-  const getAllCategories = () => {
-    AllCategories(setLoading, setError, setAllCategories);
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   const openDelete = (foundation) => {
@@ -449,6 +472,7 @@ const Foundation = () => {
     resetForm();
   };
 
+  console.log(allFoundations);
   return (
     <div className="foundation">
       <span className="foundation_counter">عدد المؤسسات: {allFoundations.length}</span>
@@ -1139,6 +1163,27 @@ const Foundation = () => {
                 </div>
               );
             })}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="pagination-controls">
+        <button
+          className="pagination-btn"
+          onClick={handlePrevPage}
+          disabled={currentPage === 1 || loading}
+        >
+          السابق
+        </button>
+        <span className="page-counter">
+          الصفحة {currentPage} من {totalPages}
+        </span>
+        <button
+          className="pagination-btn"
+          onClick={handleNextPage}
+          disabled={currentPage >= totalPages || loading}
+        >
+          التالي
+        </button>
       </div>
     </div>
   );
