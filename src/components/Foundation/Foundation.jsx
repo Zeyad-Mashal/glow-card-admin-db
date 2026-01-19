@@ -11,7 +11,7 @@ import RemoveLinkedRegion from "../../API/Foundation/RemoveLinkedRegion.api";
 import AllCategories from "../../API/Category/AllCategories";
 const Foundation = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(2);
+  const [totalPages, setTotalPages] = useState(3);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
