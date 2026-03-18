@@ -20,6 +20,7 @@ import Coupon from "./components/Copoun/Coupon";
 import Layout from "./components/Layout/Layout";
 import Contacts from "./components/Contacts/Contacts";
 import RequestCompany from "./components/RequestCompany/RequestCompany";
+import Notifications from "./components/Notifications/Notifications";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/coupon" element={<Coupon />} />
                   <Route path="/contacts" element={<Contacts />} />
                   <Route path="/getRequest" element={<RequestCompany />} />
+                  <Route path="/notifications" element={<Notifications />} />
                 </Routes>
               </Layout>
             }

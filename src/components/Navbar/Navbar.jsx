@@ -15,6 +15,7 @@ import {
   faUsers,
   faSignInAlt,
   faFileSignature,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 import "./Navbar.css";
 
@@ -99,6 +100,11 @@ const Navbar = ({ collapsed, setCollapsed }) => {
           </Link>
         </li>
 
+        <li>
+          <Link to="/notifications">
+            <FontAwesomeIcon icon={faBell} /> <span>الإشعارات</span>
+          </Link>
+        </li>
         <li>
           <Link to="/users">
             <FontAwesomeIcon icon={faUsers} /> <span>المستخدمون</span>
