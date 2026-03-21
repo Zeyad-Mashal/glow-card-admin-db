@@ -9,6 +9,22 @@ import GetRegion from "../../API/Region/GetRegion.api";
 import AddLinkRegion from "../../API/Foundation/AddLinkRegion.api";
 import RemoveLinkedRegion from "../../API/Foundation/RemoveLinkedRegion.api";
 import AllCategories from "../../API/Category/AllCategories";
+import {
+  parseLatLngFromGoogleMapsUrl,
+  getCoordinatesFromAddresses,
+} from "../../utils/parseGoogleMapsCoordinates";
+
+/** عرض lat/lng في القائمة: من الحقل المحفوظ أو بتحليل رابط الخريطة (مهم في التعديل). */
+function getAddressCoordsForDisplay(addr) {
+  if (!addr) return null;
+  if (Array.isArray(addr.coordinates) && addr.coordinates.length >= 2) {
+    const lat = Number(addr.coordinates[0]);
+    const lng = Number(addr.coordinates[1]);
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) return [lat, lng];
+  }
+  return parseLatLngFromGoogleMapsUrl(addr.map || "");
+}
+
 const Foundation = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(4);
@@ -118,11 +134,18 @@ const Foundation = () => {
 
   const handleAddAddress = () => {
     if (arabicAddress && englishAddress && googleMapLink) {
+      const coords = parseLatLngFromGoogleMapsUrl(googleMapLink);
       const newAddress = {
         en: englishAddress,
         ar: arabicAddress,
         map: googleMapLink,
+        ...(coords ? { coordinates: coords } : {}),
       };
+      if (!coords) {
+        alert(
+          "تعذر قراءة الإحداثيات من الرابط. استخدم رابط مشاركة من خرائط Google يحتوي على موقع محدد (دبوس على الخريطة)."
+        );
+      }
       setAddress((prev) => [...prev, newAddress]);
       setArabicAddress("");
       setEnglishAddress("");
@@ -222,6 +245,16 @@ const Foundation = () => {
       data.append(`categories[${index}]`, category);
     });
 
+    const coordinates = getCoordinatesFromAddresses(address);
+    if (!coordinates) {
+      alert(
+        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة)."
+      );
+      return;
+    }
+    data.append("coordinates[0]", String(coordinates[0]));
+    data.append("coordinates[1]", String(coordinates[1]));
+
     AddFoundation(setLoading, setError, data, setShowModal, () => {
       getAllFoundations();
       setCurrentPage(1);
@@ -288,6 +321,16 @@ const Foundation = () => {
       data.append(`categories[${index}]`, category);
     });
 
+    const coordinates = getCoordinatesFromAddresses(address);
+    if (!coordinates) {
+      alert(
+        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة)."
+      );
+      return;
+    }
+    data.append("coordinates[0]", String(coordinates[0]));
+    data.append("coordinates[1]", String(coordinates[1]));
+
     UpdateFoundation(
       setLoading,
       setError,
@@ -328,7 +371,25 @@ const Foundation = () => {
     setPhone(foundation.phone || "");
     setPassword(""); // Don't populate password for security
     setCityId(foundation.city?._id || "");
-    setAddress(foundation.address || []);
+    const addresses = foundation.address || [];
+    const rootCoords = foundation.coordinates;
+    const nextAddresses =
+      Array.isArray(rootCoords) &&
+      rootCoords.length >= 2 &&
+      addresses.length > 0
+        ? addresses.map((a, i) =>
+            i === 0
+              ? {
+                  ...a,
+                  coordinates: [
+                    Number(rootCoords[0]),
+                    Number(rootCoords[1]),
+                  ],
+                }
+              : a
+          )
+        : addresses;
+    setAddress(nextAddresses);
     setOffers(foundation.offers || []);
 
     // Set images for preview
@@ -603,7 +664,9 @@ const Foundation = () => {
 
               {/* عرض العناوين المدخلة */}
               <div className="address-list">
-                {address.map((address, index) => (
+                {address.map((address, index) => {
+                  const displayCoords = getAddressCoordsForDisplay(address);
+                  return (
                   <div key={index} className="address-item">
                     <p>
                       <strong>العربي:</strong> {address.ar}
@@ -614,6 +677,12 @@ const Foundation = () => {
                     <p>
                       <strong>رابط:</strong> {address.map}
                     </p>
+                    {displayCoords && (
+                      <p>
+                        <strong>الإحداثيات (lat, lng):</strong>{" "}
+                        {displayCoords[0]}, {displayCoords[1]}
+                      </p>
+                    )}
                     <button
                       type="button"
                       className="delete-btn"
@@ -622,7 +691,8 @@ const Foundation = () => {
                       حذف
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* إضافة العروض */}
@@ -887,7 +957,9 @@ const Foundation = () => {
 
               {/* عرض العناوين المدخلة */}
               <div className="address-list">
-                {address.map((address, index) => (
+                {address.map((address, index) => {
+                  const displayCoords = getAddressCoordsForDisplay(address);
+                  return (
                   <div key={index} className="address-item">
                     <p>
                       <strong>العربي:</strong> {address.ar}
@@ -898,6 +970,12 @@ const Foundation = () => {
                     <p>
                       <strong>رابط:</strong> {address.map}
                     </p>
+                    {displayCoords && (
+                      <p>
+                        <strong>الإحداثيات (lat, lng):</strong>{" "}
+                        {displayCoords[0]}, {displayCoords[1]}
+                      </p>
+                    )}
                     <button
                       type="button"
                       className="delete-btn"
@@ -906,7 +984,8 @@ const Foundation = () => {
                       حذف
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* إضافة العروض */}
