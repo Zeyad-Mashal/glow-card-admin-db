@@ -5,6 +5,10 @@ const SendNotification = async (title, body, productId, setLoading, setError, se
     setLoading(true);
     setError("");
     setSuccess(false);
+    const payload = { title, body };
+    if (productId != null && String(productId).trim() !== "") {
+        payload.productId = productId;
+    }
     try {
         const response = await fetch(URL, {
             method: 'POST',
@@ -12,7 +16,7 @@ const SendNotification = async (title, body, productId, setLoading, setError, se
                 "Content-Type": "application/json",
                 "authorization": `glowONW${token}`,
             },
-            body: JSON.stringify({ title, body, productId }),
+            body: JSON.stringify(payload),
         });
 
         const result = await response.json();
@@ -20,6 +24,10 @@ const SendNotification = async (title, body, productId, setLoading, setError, se
         if (response.ok) {
             setLoading(false);
             setSuccess(true);
+        } else if (response.status == 500) {
+            console.log(result.error);
+            setError(result.message);
+            setLoading(false);
         } else {
             setError(result.message || "حدث خطأ أثناء إرسال الإشعار");
             setLoading(false);

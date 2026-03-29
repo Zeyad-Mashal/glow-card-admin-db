@@ -84,10 +84,6 @@ const Notifications = () => {
       setError("يرجى إدخال نص الإشعار");
       return;
     }
-    if (!selectedFoundationId) {
-      setError("يرجى اختيار مؤسسة");
-      return;
-    }
     setError("");
     SendNotification(title, body, selectedFoundationId, setLoading, setError, setSuccess);
   };
@@ -112,7 +108,7 @@ const Notifications = () => {
           <h1>الإشعارات</h1>
         </div>
         <p className="notifications-subtitle">
-          أرسل إشعارات مباشرة إلى مؤسساتك
+          أرسل إشعارات؛ اختيار المؤسسة اختياري لتوجيه الإشعار لمؤسسة محددة
         </p>
       </div>
 
@@ -163,7 +159,7 @@ const Notifications = () => {
 
               {/* Foundation Selector */}
               <div className="form-group">
-                <label className="form-label">اختر المؤسسة</label>
+                <label className="form-label">المؤسسة (اختياري)</label>
 
                 {/* Search above select */}
                 <div className="search-wrapper">
@@ -188,10 +184,10 @@ const Notifications = () => {
                       onChange={(e) => setSelectedFoundationId(e.target.value)}
                       size={6}
                     >
-                      <option value="" disabled>
+                      <option value="">
                         {filteredFoundations.length === 0
-                          ? "لا توجد مؤسسات مطابقة"
-                          : "اختر مؤسسة..."}
+                          ? "بدون تحديد — لا توجد مؤسسات مطابقة للبحث"
+                          : "بدون تحديد — إشعار عام (كل المستخدمين أو حسب إعدادات السيرفر)"}
                       </option>
                       {filteredFoundations.map((f) => (
                         <option key={f._id} value={f._id}>
@@ -241,8 +237,9 @@ const Notifications = () => {
           <ul>
             <li>أدخل عنواناً واضحاً للإشعار</li>
             <li>اكتب محتوى الإشعار في خانة النص</li>
-            <li>استخدم خانة البحث للعثور على المؤسسة بسرعة</li>
-            <li>اختر المؤسسة من القائمة ثم اضغط إرسال</li>
+            <li>المؤسسة اختيارية: إن لم تخترها يُرسل الإشعار حسب ما يدعمه السيرفر (عام)</li>
+            <li>إن اخترت مؤسسة، يُرسل السيرفر مع الطلب معرّف المؤسسة لتوجيه الإشعار</li>
+            <li>استخدم خانة البحث للعثور على مؤسسة عند الحاجة</li>
           </ul>
         </div>
       </div>
