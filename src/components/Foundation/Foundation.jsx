@@ -27,7 +27,7 @@ function getAddressCoordsForDisplay(addr) {
 
 const Foundation = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(4);
+  const [totalPages, setTotalPages] = useState(6);
   const [showModal, setShowModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -64,7 +64,13 @@ const Foundation = () => {
   const [categoriesName, setCategoriesName] = useState([]);
 
   const getAllFoundations = () => {
-    GetAllFoundations(setLoading, setError, setAllFoundations, currentPage, setTotalPages);
+    GetAllFoundations(
+      setLoading,
+      setError,
+      setAllFoundations,
+      currentPage,
+      setTotalPages,
+    );
   };
 
   const getAllCities = () => {
@@ -143,7 +149,7 @@ const Foundation = () => {
       };
       if (!coords) {
         alert(
-          "تعذر قراءة الإحداثيات من الرابط. استخدم رابط مشاركة من خرائط Google يحتوي على موقع محدد (دبوس على الخريطة)."
+          "تعذر قراءة الإحداثيات من الرابط. استخدم رابط مشاركة من خرائط Google يحتوي على موقع محدد (دبوس على الخريطة).",
         );
       }
       setAddress((prev) => [...prev, newAddress]);
@@ -157,7 +163,7 @@ const Foundation = () => {
     e.preventDefault();
     if (categoryName !== "") {
       const categoryId = allCategories.filter(
-        (category) => category.name === categoryName
+        (category) => category.name === categoryName,
       )[0]._id;
       setCategoriesIds((prev) => [...prev, categoryId]);
       setCategoriesName((prev) => [...prev, categoryName]);
@@ -248,7 +254,7 @@ const Foundation = () => {
     const coordinates = getCoordinatesFromAddresses(address);
     if (!coordinates) {
       alert(
-        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة)."
+        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة).",
       );
       return;
     }
@@ -324,7 +330,7 @@ const Foundation = () => {
     const coordinates = getCoordinatesFromAddresses(address);
     if (!coordinates) {
       alert(
-        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة)."
+        "يجب أن يحتوي رابط خرائط Google لأحد العناوين على إحداثيات الموقع (شارك الموقع من التطبيق مع وضع دبوس على العيادة).",
       );
       return;
     }
@@ -337,7 +343,7 @@ const Foundation = () => {
       foundationId,
       setShowUpdateModal,
       data,
-      getAllFoundations
+      getAllFoundations,
     );
   };
 
@@ -381,12 +387,9 @@ const Foundation = () => {
             i === 0
               ? {
                   ...a,
-                  coordinates: [
-                    Number(rootCoords[0]),
-                    Number(rootCoords[1]),
-                  ],
+                  coordinates: [Number(rootCoords[0]), Number(rootCoords[1])],
                 }
-              : a
+              : a,
           )
         : addresses;
     setAddress(nextAddresses);
@@ -399,7 +402,7 @@ const Foundation = () => {
     if (foundation.images && foundation.images.length > 0) {
       try {
         const filePromises = foundation.images.map((imageUrl, index) =>
-          urlToFile(imageUrl, `image-${index}.jpg`)
+          urlToFile(imageUrl, `image-${index}.jpg`),
         );
         const files = await Promise.all(filePromises);
         // Filter out any null values (failed conversions) and ensure arrays stay in sync
@@ -407,7 +410,7 @@ const Foundation = () => {
         // If some conversions failed, remove corresponding images to keep arrays in sync
         if (validFiles.length !== files.length) {
           const validImages = foundation.images.filter(
-            (_, index) => files[index] !== null
+            (_, index) => files[index] !== null,
           );
           setImages(validImages);
         }
@@ -417,7 +420,7 @@ const Foundation = () => {
         // If conversion fails completely, still show images but warn user
         setAllFiles([]);
         alert(
-          "تحذير: قد لا تتمكن من إعادة ترتيب الصور الموجودة. يرجى رفع الصور مرة أخرى."
+          "تحذير: قد لا تتمكن من إعادة ترتيب الصور الموجودة. يرجى رفع الصور مرة أخرى.",
         );
       }
     } else {
@@ -435,7 +438,7 @@ const Foundation = () => {
       setError,
       foundationId,
       setShowDeleteModal,
-      getAllFoundations
+      getAllFoundations,
     );
   };
 
@@ -486,7 +489,7 @@ const Foundation = () => {
       regionId,
       foundationId,
       getAllFoundations,
-      setLinkRegionModal
+      setLinkRegionModal,
     );
   };
 
@@ -497,7 +500,7 @@ const Foundation = () => {
       regionId,
       foundationId,
       getAllFoundations,
-      setLinkRegionModal
+      setLinkRegionModal,
     );
   };
 
@@ -536,7 +539,9 @@ const Foundation = () => {
   console.log(allFoundations);
   return (
     <div className="foundation">
-      <span className="foundation_counter">عدد المؤسسات: {allFoundations.length}</span>
+      <span className="foundation_counter">
+        عدد المؤسسات: {allFoundations.length}
+      </span>
       <h1>إضافة المؤسسات</h1>
       <button className="add-btn" onClick={() => setShowModal(true)}>
         + إضافة مؤسسة
@@ -667,30 +672,30 @@ const Foundation = () => {
                 {address.map((address, index) => {
                   const displayCoords = getAddressCoordsForDisplay(address);
                   return (
-                  <div key={index} className="address-item">
-                    <p>
-                      <strong>العربي:</strong> {address.ar}
-                    </p>
-                    <p>
-                      <strong>الإنجليزي:</strong> {address.en}
-                    </p>
-                    <p>
-                      <strong>رابط:</strong> {address.map}
-                    </p>
-                    {displayCoords && (
+                    <div key={index} className="address-item">
                       <p>
-                        <strong>الإحداثيات (lat, lng):</strong>{" "}
-                        {displayCoords[0]}, {displayCoords[1]}
+                        <strong>العربي:</strong> {address.ar}
                       </p>
-                    )}
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() => handleDeleteAddress(index)}
-                    >
-                      حذف
-                    </button>
-                  </div>
+                      <p>
+                        <strong>الإنجليزي:</strong> {address.en}
+                      </p>
+                      <p>
+                        <strong>رابط:</strong> {address.map}
+                      </p>
+                      {displayCoords && (
+                        <p>
+                          <strong>الإحداثيات (lat, lng):</strong>{" "}
+                          {displayCoords[0]}, {displayCoords[1]}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="delete-btn"
+                        onClick={() => handleDeleteAddress(index)}
+                      >
+                        حذف
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -960,30 +965,30 @@ const Foundation = () => {
                 {address.map((address, index) => {
                   const displayCoords = getAddressCoordsForDisplay(address);
                   return (
-                  <div key={index} className="address-item">
-                    <p>
-                      <strong>العربي:</strong> {address.ar}
-                    </p>
-                    <p>
-                      <strong>الإنجليزي:</strong> {address.en}
-                    </p>
-                    <p>
-                      <strong>رابط:</strong> {address.map}
-                    </p>
-                    {displayCoords && (
+                    <div key={index} className="address-item">
                       <p>
-                        <strong>الإحداثيات (lat, lng):</strong>{" "}
-                        {displayCoords[0]}, {displayCoords[1]}
+                        <strong>العربي:</strong> {address.ar}
                       </p>
-                    )}
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() => handleDeleteAddress(index)}
-                    >
-                      حذف
-                    </button>
-                  </div>
+                      <p>
+                        <strong>الإنجليزي:</strong> {address.en}
+                      </p>
+                      <p>
+                        <strong>رابط:</strong> {address.map}
+                      </p>
+                      {displayCoords && (
+                        <p>
+                          <strong>الإحداثيات (lat, lng):</strong>{" "}
+                          {displayCoords[0]}, {displayCoords[1]}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="delete-btn"
+                        onClick={() => handleDeleteAddress(index)}
+                      >
+                        حذف
+                      </button>
+                    </div>
                   );
                 })}
               </div>
