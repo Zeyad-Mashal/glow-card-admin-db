@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./Foundation.css";
 import AddFoundation from "../../API/Foundation/AddFoundation.api";
 import UpdateFoundation from "../../API/Foundation/UpdateFoundation.api";
@@ -23,6 +23,31 @@ function getAddressCoordsForDisplay(addr) {
     if (!Number.isNaN(lat) && !Number.isNaN(lng)) return [lat, lng];
   }
   return parseLatLngFromGoogleMapsUrl(addr.map || "");
+}
+
+/** اسم التصنيف للعرض سواء جاء نصًا أو { ar, en } من الـ API */
+function labelForFoundationCategory(cat) {
+  if (!cat) return "";
+  const n = cat.name;
+  if (typeof n === "string") return n;
+  if (n && typeof n === "object") return n.ar || n.en || "";
+  return "";
+}
+
+/** اسم المدينة للعرض وقيمة الـ option (عربي أو إنجليزي أو نص واحد) */
+function getCityArName(city) {
+  if (!city?.name) return "";
+  if (typeof city.name === "object" && city.name !== null) {
+    return city.name.ar || city.name.en || "";
+  }
+  return String(city.name);
+}
+
+function resolveFoundationCityId(foundation) {
+  const c = foundation?.city;
+  if (c == null || c === "") return "";
+  if (typeof c === "string") return c;
+  return String(c._id ?? c.id ?? "");
 }
 
 const Foundation = () => {
@@ -161,15 +186,22 @@ const Foundation = () => {
 
   const handleAddCategory = (e) => {
     e.preventDefault();
-    if (categoryName !== "") {
-      const categoryId = allCategories.filter(
-        (category) => category.name === categoryName,
-      )[0]._id;
-      setCategoriesIds((prev) => [...prev, categoryId]);
-      setCategoriesName((prev) => [...prev, categoryName]);
-    } else {
+    if (!categoryName || categoryName === "") {
       alert("يجب اختيار التصنيف اولا");
+      return;
     }
+    const match = allCategories.find((c) => c.name === categoryName);
+    const id = match?._id ?? match?.id;
+    if (!id) {
+      alert("التصنيف غير موجود في القائمة");
+      return;
+    }
+    if (categoriesIds.includes(id)) {
+      alert("هذا التصنيف مضاف بالفعل");
+      return;
+    }
+    setCategoriesIds((prev) => [...prev, id]);
+    setCategoriesName((prev) => [...prev, categoryName]);
   };
 
   const removeCategoryId = (index) => {
@@ -376,7 +408,7 @@ const Foundation = () => {
     setEmail(foundation.email || "");
     setPhone(foundation.phone || "");
     setPassword(""); // Don't populate password for security
-    setCityId(foundation.city?._id || "");
+    setCityId(resolveFoundationCityId(foundation));
     const addresses = foundation.address || [];
     const rootCoords = foundation.coordinates;
     const nextAddresses =
@@ -427,8 +459,14 @@ const Foundation = () => {
       setAllFiles([]);
     }
 
-    setCategoriesIds(foundation.categories?.map((cat) => cat._id) || []);
-    setCategoriesName(foundation.categories?.map((cat) => cat.name) || []);
+    setCategoriesIds(
+      foundation.categories?.map((cat) => cat._id ?? cat.id) || [],
+    );
+    setCategoriesName(
+      foundation.categories?.map((cat) => labelForFoundationCategory(cat)) ||
+        [],
+    );
+    setCategoryName("");
     setShowUpdateModal(true);
   };
 
@@ -449,22 +487,39 @@ const Foundation = () => {
   };
 
   const getAllRegion = (value) => {
-    const cityId = allCities.filter((city) => city.name.ar === value)[0]._id;
-    if (cityId) {
-      GetRegion(setLoading, setError, setAllRegions, cityId);
+    if (!value || value === "اختر المدينه") return;
+    const city = allCities.find((c) => getCityArName(c) === value);
+    const cid = city?._id ?? city?.id;
+    if (cid) {
+      GetRegion(setLoading, setError, setAllRegions, cid);
     } else {
       alert("City Id Is Not Found..!");
     }
   };
 
   const getCityId = (value) => {
-    const cityId = allCities.filter((city) => city.name.ar === value)[0]._id;
-    if (cityId) {
-      setCityId(cityId);
+    if (!value || value === "اختر المدينه") {
+      setCityId("");
+      return;
+    }
+    const city = allCities.find((c) => getCityArName(c) === value);
+    const id = city?._id ?? city?.id;
+    if (id) {
+      setCityId(id);
     } else {
       alert("City Id Is Not Found..!");
     }
   };
+
+  const selectedCityOptionValue = useMemo(() => {
+    if (!cityId || !allCities.length) return "اختر المدينه";
+    const city = allCities.find(
+      (x) => String(x._id ?? x.id) === String(cityId),
+    );
+    if (!city) return "اختر المدينه";
+    const ar = getCityArName(city);
+    return ar || "اختر المدينه";
+  }, [cityId, allCities]);
 
   const getRegionId = (value) => {
     const regionId = allRegions.filter((region) => region.name.ar === value)[0]
@@ -607,7 +662,11 @@ const Foundation = () => {
               <div className="flex-group">
                 <div className="form-group">
                   <label>التصنيفات</label>
-                  <select onChange={(e) => setCategoryName(e.target.value)}>
+                  <select
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                  >
+                    <option value="">اختر تصنيفًا لإضافته...</option>
                     {allCategories.map((item, index) => {
                       return (
                         <option value={item.name} key={index}>
@@ -616,310 +675,23 @@ const Foundation = () => {
                       );
                     })}
                   </select>
-                  <button onClick={(e) => handleAddCategory(e)}>اضافه</button>
+                  <button type="button" onClick={(e) => handleAddCategory(e)}>
+                    اضافه
+                  </button>
                   <div className="category_items">
-                    {categoriesName.map((category, index) => {
-                      return (
-                        <p key={index}>
-                          {category}{" "}
-                          <span onClick={() => removeCategoryId(index)}>X</span>
-                        </p>
-                      );
-                    })}
+                    {categoriesName.length === 0 ? (
+                      <p className="muted">لا توجد تصنيفات بعد — أضف من القائمة</p>
+                    ) : (
+                      categoriesName.map((category, index) => {
+                        return (
+                          <p key={index}>
+                            {category}{" "}
+                            <span onClick={() => removeCategoryId(index)}>X</span>
+                          </p>
+                        );
+                      })
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* إضافة العناوين */}
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>العنوان بالعربي</label>
-                  <input
-                    type="text"
-                    value={arabicAddress}
-                    onChange={(e) => setArabicAddress(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>العنوان بالإنجليزي</label>
-                  <input
-                    type="text"
-                    value={englishAddress}
-                    onChange={(e) => setEnglishAddress(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>رابط جوجل ماب</label>
-                <input
-                  type="text"
-                  value={googleMapLink}
-                  onChange={(e) => setGoogleMapLink(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="button"
-                className="add-btn"
-                onClick={handleAddAddress}
-              >
-                + إضافة عنوان
-              </button>
-
-              {/* عرض العناوين المدخلة */}
-              <div className="address-list">
-                {address.map((address, index) => {
-                  const displayCoords = getAddressCoordsForDisplay(address);
-                  return (
-                    <div key={index} className="address-item">
-                      <p>
-                        <strong>العربي:</strong> {address.ar}
-                      </p>
-                      <p>
-                        <strong>الإنجليزي:</strong> {address.en}
-                      </p>
-                      <p>
-                        <strong>رابط:</strong> {address.map}
-                      </p>
-                      {displayCoords && (
-                        <p>
-                          <strong>الإحداثيات (lat, lng):</strong>{" "}
-                          {displayCoords[0]}, {displayCoords[1]}
-                        </p>
-                      )}
-                      <button
-                        type="button"
-                        className="delete-btn"
-                        onClick={() => handleDeleteAddress(index)}
-                      >
-                        حذف
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* إضافة العروض */}
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>العرض بالعربي</label>
-                  <input
-                    type="text"
-                    value={arabicOffer}
-                    onChange={(e) => setArabicOffer(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>العرض بالإنجليزي</label>
-                  <input
-                    type="text"
-                    value={englishOffer}
-                    onChange={(e) => setEnglishOffer(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>نسبة العرض (%)</label>
-                <input
-                  type="text"
-                  value={discountRate}
-                  onChange={(e) => setDiscountRate(e.target.value)}
-                />
-              </div>
-
-              <button
-                type="button"
-                className="add-btn"
-                onClick={handleAddOffer}
-              >
-                + إضافة عرض
-              </button>
-
-              {/* عرض العروض المدخلة */}
-              <div className="offers-list">
-                {offers.map((offer, index) => (
-                  <div key={index} className="offer-item">
-                    <p>
-                      <strong>العرض بالعربي:</strong> {offer.ar}
-                    </p>
-                    <p>
-                      <strong>العرض بالإنجليزي:</strong> {offer.en}
-                    </p>
-                    <p>
-                      <strong>النسبة:</strong> {offer.offer}%
-                    </p>
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() => handleDeleteOffer(index)}
-                    >
-                      حذف
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* باقي الفورم */}
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>الوصف بالعربي</label>
-                  <textarea
-                    value={arDesc}
-                    onChange={(e) => setArDesc(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className="form-group">
-                  <label>الوصف بالإنجليزي</label>
-                  <textarea
-                    value={enDesc}
-                    onChange={(e) => setEnDesc(e.target.value)}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>التخصصات بالعربي</label>
-                  <textarea
-                    value={arSpecial}
-                    onChange={(e) => setArSpecial(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className="form-group">
-                  <label>التخصصات بالإنجليزي</label>
-                  <textarea
-                    value={enSpecial}
-                    onChange={(e) => setEnSpecial(e.target.value)}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>رفع الصور</label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                <div className="preview-container">
-                  {images.map((img, i) => (
-                    <div key={i} className="preview-img-wrapper">
-                      {i === 0 && (
-                        <div className="first-image-badge">الصورة الأولى</div>
-                      )}
-                      <img
-                        src={img}
-                        className={`preview-img ${
-                          i === 0 ? "first-image" : ""
-                        }`}
-                      />
-                      <div className="image-controls">
-                        {i !== 0 && (
-                          <button
-                            type="button"
-                            className="move-to-first-btn"
-                            onClick={() => moveImageToFirst(i)}
-                            title="جعلها الصورة الأولى"
-                          >
-                            ⬆️
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className="remove-image-btn"
-                          onClick={() => removeImage(i)}
-                          title="حذف الصورة"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <select onChange={(e) => getCityId(e.target.value)}>
-                <option value="اختر المدينه">اختر المدينه</option>
-                {allCities.map((item, index) => {
-                  return (
-                    <option value={item.name.ar} key={index}>
-                      {item.name.ar}
-                    </option>
-                  );
-                })}
-              </select>
-            </form>
-            {error}
-            <button className="submit-btn" onClick={handleSubmit}>
-              {loading ? "جاري التحميل..." : "إضافة مؤسسة"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showUpdateModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <button
-              className="close-btn"
-              onClick={() => {
-                setShowUpdateModal(false);
-                resetForm();
-              }}
-            >
-              ×
-            </button>
-
-            <form>
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>الاسم بالعربي</label>
-                  <input
-                    type="text"
-                    value={arabicName}
-                    onChange={(e) => setArabicName(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>الاسم بالإنجليزي</label>
-                  <input
-                    type="text"
-                    value={englishName}
-                    onChange={(e) => setEnglishName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>الايميل</label>
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>رقم الهاتف</label>
-                  <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex-group">
-                <div className="form-group">
-                  <label>الباسورد</label>
-                  <input
-                    type="text"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
                 </div>
               </div>
 
@@ -1135,17 +907,354 @@ const Foundation = () => {
               </div>
 
               <select
+                value={selectedCityOptionValue}
                 onChange={(e) => getCityId(e.target.value)}
-                defaultValue={
-                  allCities.find((city) => city._id === cityId)?.name.ar ||
-                  "اختر المدينه"
-                }
               >
                 <option value="اختر المدينه">اختر المدينه</option>
                 {allCities.map((item, index) => {
+                  const label = getCityArName(item);
+                  if (!label) return null;
                   return (
-                    <option value={item.name.ar} key={index}>
-                      {item.name.ar}
+                    <option value={label} key={item._id ?? item.id ?? index}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+            </form>
+            {error}
+            <button className="submit-btn" onClick={handleSubmit}>
+              {loading ? "جاري التحميل..." : "إضافة مؤسسة"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showUpdateModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <button
+              className="close-btn"
+              onClick={() => {
+                setShowUpdateModal(false);
+                resetForm();
+              }}
+            >
+              ×
+            </button>
+
+            <form>
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>الاسم بالعربي</label>
+                  <input
+                    type="text"
+                    value={arabicName}
+                    onChange={(e) => setArabicName(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>الاسم بالإنجليزي</label>
+                  <input
+                    type="text"
+                    value={englishName}
+                    onChange={(e) => setEnglishName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>الايميل</label>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>رقم الهاتف</label>
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>الباسورد</label>
+                  <input
+                    type="text"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>التصنيفات (التخصصات)</label>
+                  <p className="form-hint muted">
+                    التصنيفات الحالية تظهر بالأسفل؛ يمكنك حذفها أو إضافة تصنيفات
+                    من القائمة.
+                  </p>
+                  <select
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                  >
+                    <option value="">اختر تصنيفًا لإضافته...</option>
+                    {allCategories.map((item, index) => {
+                      return (
+                        <option value={item.name} key={index}>
+                          {item.name}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <button type="button" onClick={(e) => handleAddCategory(e)}>
+                    اضافه
+                  </button>
+                  <div className="category_items">
+                    {categoriesName.length === 0 ? (
+                      <p className="muted">لا توجد تصنيفات بعد — أضف من القائمة</p>
+                    ) : (
+                      categoriesName.map((category, index) => {
+                        return (
+                          <p key={index}>
+                            {category}{" "}
+                            <span onClick={() => removeCategoryId(index)}>X</span>
+                          </p>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* إضافة العناوين */}
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>العنوان بالعربي</label>
+                  <input
+                    type="text"
+                    value={arabicAddress}
+                    onChange={(e) => setArabicAddress(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>العنوان بالإنجليزي</label>
+                  <input
+                    type="text"
+                    value={englishAddress}
+                    onChange={(e) => setEnglishAddress(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>رابط جوجل ماب</label>
+                <input
+                  type="text"
+                  value={googleMapLink}
+                  onChange={(e) => setGoogleMapLink(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="add-btn"
+                onClick={handleAddAddress}
+              >
+                + إضافة عنوان
+              </button>
+
+              {/* عرض العناوين المدخلة */}
+              <div className="address-list">
+                {address.map((address, index) => {
+                  const displayCoords = getAddressCoordsForDisplay(address);
+                  return (
+                    <div key={index} className="address-item">
+                      <p>
+                        <strong>العربي:</strong> {address.ar}
+                      </p>
+                      <p>
+                        <strong>الإنجليزي:</strong> {address.en}
+                      </p>
+                      <p>
+                        <strong>رابط:</strong> {address.map}
+                      </p>
+                      {displayCoords && (
+                        <p>
+                          <strong>الإحداثيات (lat, lng):</strong>{" "}
+                          {displayCoords[0]}, {displayCoords[1]}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        className="delete-btn"
+                        onClick={() => handleDeleteAddress(index)}
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* إضافة العروض */}
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>العرض بالعربي</label>
+                  <input
+                    type="text"
+                    value={arabicOffer}
+                    onChange={(e) => setArabicOffer(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>العرض بالإنجليزي</label>
+                  <input
+                    type="text"
+                    value={englishOffer}
+                    onChange={(e) => setEnglishOffer(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>نسبة العرض (%)</label>
+                <input
+                  type="text"
+                  value={discountRate}
+                  onChange={(e) => setDiscountRate(e.target.value)}
+                />
+              </div>
+
+              <button
+                type="button"
+                className="add-btn"
+                onClick={handleAddOffer}
+              >
+                + إضافة عرض
+              </button>
+
+              {/* عرض العروض المدخلة */}
+              <div className="offers-list">
+                {offers.map((offer, index) => (
+                  <div key={index} className="offer-item">
+                    <p>
+                      <strong>العرض بالعربي:</strong> {offer.ar}
+                    </p>
+                    <p>
+                      <strong>العرض بالإنجليزي:</strong> {offer.en}
+                    </p>
+                    <p>
+                      <strong>النسبة:</strong> {offer.offer}%
+                    </p>
+                    <button
+                      type="button"
+                      className="delete-btn"
+                      onClick={() => handleDeleteOffer(index)}
+                    >
+                      حذف
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* باقي الفورم */}
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>الوصف بالعربي</label>
+                  <textarea
+                    value={arDesc}
+                    onChange={(e) => setArDesc(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className="form-group">
+                  <label>الوصف بالإنجليزي</label>
+                  <textarea
+                    value={enDesc}
+                    onChange={(e) => setEnDesc(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>التخصصات بالعربي</label>
+                  <textarea
+                    value={arSpecial}
+                    onChange={(e) => setArSpecial(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className="form-group">
+                  <label>التخصصات بالإنجليزي</label>
+                  <textarea
+                    value={enSpecial}
+                    onChange={(e) => setEnSpecial(e.target.value)}
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>رفع الصور</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                <div className="preview-container">
+                  {images.map((img, i) => (
+                    <div key={i} className="preview-img-wrapper">
+                      {i === 0 && (
+                        <div className="first-image-badge">الصورة الأولى</div>
+                      )}
+                      <img
+                        src={img}
+                        className={`preview-img ${
+                          i === 0 ? "first-image" : ""
+                        }`}
+                      />
+                      <div className="image-controls">
+                        {i !== 0 && (
+                          <button
+                            type="button"
+                            className="move-to-first-btn"
+                            onClick={() => moveImageToFirst(i)}
+                            title="جعلها الصورة الأولى"
+                          >
+                            ⬆️
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="remove-image-btn"
+                          onClick={() => removeImage(i)}
+                          title="حذف الصورة"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <select
+                value={selectedCityOptionValue}
+                onChange={(e) => getCityId(e.target.value)}
+              >
+                <option value="اختر المدينه">اختر المدينه</option>
+                {allCities.map((item, index) => {
+                  const label = getCityArName(item);
+                  if (!label) return null;
+                  return (
+                    <option value={label} key={item._id ?? item.id ?? index}>
+                      {label}
                     </option>
                   );
                 })}
@@ -1199,7 +1308,16 @@ const Foundation = () => {
             <div className="foundtion_delete_btn linkRegions">
               <select onChange={(e) => getAllRegion(e.target.value)}>
                 {allCities.map((item) => {
-                  return <option value={item.name.ar}>{item.name.ar}</option>;
+                  const label = getCityArName(item);
+                  if (!label) return null;
+                  return (
+                    <option
+                      key={item._id ?? item.id ?? label}
+                      value={label}
+                    >
+                      {label}
+                    </option>
+                  );
                 })}
               </select>
               <select onChange={(e) => getRegionId(e.target.value)}>

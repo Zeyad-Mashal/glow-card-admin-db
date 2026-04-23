@@ -380,3 +380,13 @@ form > select {
   background-color: #f8f9fa;
   border-radius: 6px;
 }
+
+.form-hint {
+  font-size: 13px;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.muted {
+  color: #666;
+}
