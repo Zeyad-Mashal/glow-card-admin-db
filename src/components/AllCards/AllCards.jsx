@@ -1,9 +1,166 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./AllCards.css";
 import AllCardsApi from "../../API/AllCards/AllCardsApi";
 import AddCustomCard from "../../API/AllCards/AddCustomCard.api";
 import GetProducts from "../../API/AddProduct/GetProducts.api";
 import SearchCards from "../../API/AllCards/SearchCards.api";
+
+const createPerson = (gender = "") => ({
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+  gender,
+  nationalID: "",
+  dateOfBirth: "",
+  nationality: "",
+});
+
+const initialMembersData = {
+  father: createPerson("Male"),
+  mother: createPerson("Female"),
+  child1: createPerson("Male"),
+  child2: createPerson("Male"),
+};
+
+const roleLabels = {
+  father: "بيانات الأب",
+  mother: "بيانات الأم",
+  child1: "بيانات الابن الأول",
+  child2: "بيانات الابن الثاني",
+};
+
+const requiredRolesByType = {
+  Annual: ["father"],
+  "Two-Year": ["father"],
+  Newlywed: ["father", "mother"],
+  Family: ["father", "mother", "child1", "child2"],
+};
+
+const Validator = (formData, type) => {
+  const hasAtLeastThreeWords = (value) => {
+    if (typeof value !== "string") return false;
+    const words = value.trim().split(/\s+/).filter(Boolean);
+    return words.length >= 3;
+  };
+
+  if (!type) return false;
+
+  if (type === "Annual" || type === "Two-Year") {
+    const { father } = formData;
+    const {
+      name,
+      phone,
+      email,
+      address,
+      gender,
+      nationalID,
+      dateOfBirth,
+      nationality,
+    } = father || {};
+    if (
+      !name ||
+      !hasAtLeastThreeWords(name) ||
+      !phone ||
+      !email ||
+      !address ||
+      !gender ||
+      !nationalID ||
+      !dateOfBirth ||
+      !nationality
+    ) {
+      return false;
+    }
+  }
+
+  if (type === "Newlywed") {
+    const { father, mother } = formData;
+    if (
+      !father?.name ||
+      !hasAtLeastThreeWords(father.name) ||
+      !father.phone ||
+      !father.email ||
+      !father.address ||
+      !father.gender ||
+      !father.nationalID ||
+      !father.dateOfBirth ||
+      !father.nationality
+    ) {
+      return false;
+    }
+    if (
+      !mother?.name ||
+      !hasAtLeastThreeWords(mother.name) ||
+      !mother.phone ||
+      !mother.email ||
+      !mother.address ||
+      !mother.gender ||
+      !mother.nationalID ||
+      !mother.dateOfBirth ||
+      !mother.nationality
+    ) {
+      return false;
+    }
+  }
+
+  if (type === "Family") {
+    const { father, mother, child1, child2 } = formData;
+    if (
+      !father?.name ||
+      !hasAtLeastThreeWords(father.name) ||
+      !father.phone ||
+      !father.email ||
+      !father.address ||
+      !father.gender ||
+      !father.nationalID ||
+      !father.dateOfBirth ||
+      !father.nationality
+    ) {
+      return false;
+    }
+    if (
+      !mother?.name ||
+      !hasAtLeastThreeWords(mother.name) ||
+      !mother.phone ||
+      !mother.email ||
+      !mother.address ||
+      !mother.gender ||
+      !mother.nationalID ||
+      !mother.dateOfBirth ||
+      !mother.nationality
+    ) {
+      return false;
+    }
+    if (
+      !child1?.name ||
+      !hasAtLeastThreeWords(child1.name) ||
+      !child1.phone ||
+      !child1.email ||
+      !child1.address ||
+      !child1.gender ||
+      !child1.nationalID ||
+      !child1.dateOfBirth ||
+      !child1.nationality
+    ) {
+      return false;
+    }
+    if (
+      !child2?.name ||
+      !hasAtLeastThreeWords(child2.name) ||
+      !child2.phone ||
+      !child2.email ||
+      !child2.address ||
+      !child2.gender ||
+      !child2.nationalID ||
+      !child2.dateOfBirth ||
+      !child2.nationality
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 const AllCards = () => {
   const [showModal, setShowModal] = useState(false);
@@ -11,7 +168,6 @@ const AllCards = () => {
   const [error, setError] = useState("");
   const [allCards, setAllCards] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const [cutomId, setCutomId] = useState("");
   const [generalCode, setGeneralCode] = useState("");
   const [code, setCode] = useState("");
   const [page, setPage] = useState(1);
@@ -19,49 +175,69 @@ const AllCards = () => {
   const [filterModel, setFilterModel] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [totalPages, setTotalPages] = useState(0);
-  const [formData, setFormData] = useState({
+  const [accountData, setAccountData] = useState({
     name: "",
     phone: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    nationalID: "",
-    nationality: "",
-    type: "Custom",
     email: "",
+    password: "",
+    dateOfBirth: "",
+    productId: "",
+    type: "",
   });
+  const [memberForms, setMemberForms] = useState(initialMembersData);
+  const [modalStep, setModalStep] = useState(1);
+  const [activeRoleStep, setActiveRoleStep] = useState(0);
+  const [formErrors, setFormErrors] = useState({});
+  const [toast, setToast] = useState({
+    show: false,
+    type: "success",
+    message: "",
+  });
+
+  const selectedMembershipProducts = useMemo(
+    () => allProducts.filter((item) => item.type !== "Custom"),
+    [allProducts]
+  );
+  const selectedRoles = requiredRolesByType[accountData.type] || ["father"];
 
   useEffect(() => {
     getAllCards();
     getAllProducts();
   }, [page]);
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+  useEffect(() => {
+    if (!toast.show) return undefined;
+    const timer = window.setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 3500);
+    return () => window.clearTimeout(timer);
+  }, [toast.show]);
+
+  const resetMembershipForm = () => {
+    setAccountData({
+      name: "",
+      phone: "",
+      email: "",
+      password: "",
+      dateOfBirth: "",
+      productId: "",
+      type: "",
+    });
+    setMemberForms(initialMembersData);
+    setModalStep(1);
+    setActiveRoleStep(0);
+    setFormErrors({});
   };
 
-  const openAddCutomCard = () => {
-    const customProduct = allProducts.find(
-      (product) => product.type === "Custom"
-    );
-    if (customProduct) {
-      setCutomId(customProduct._id);
-      setShowModal(true);
-    } else {
-      alert("Cutom Not Found");
-    }
-  };
+  const hasAtLeastThreeWords = (fullName = "") =>
+    fullName
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length >= 3;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    AddCustomCard(
-      setLoading,
-      setError,
-      formData,
-      setShowModal,
-      getAllCards,
-      cutomId
-    );
+  const normalizeMembershipType = (type) => {
+    if (type === "Two-Year") return "Two-Year";
+    return type;
   };
 
   const getAllCards = () => {
@@ -86,18 +262,18 @@ const AllCards = () => {
       SearchCards(setLoading, setError, setAllCards, generalCode, code);
     }
   };
+
   const handleFilterSelect = (filter) => {
     if (selectedFilters.includes(filter)) {
       setSelectedFilters(selectedFilters.filter((item) => item !== filter));
     } else {
       setSelectedFilters([...selectedFilters, filter]);
     }
-    console.log(selectedFilters);
   };
 
   const handleFilter = () => {
     setFilterModel(false);
-    if (selectedFilters.length == 0) {
+    if (selectedFilters.length === 0) {
       setTypeFilter("");
       AllCardsApi(page, "", setLoading, setError, setAllCards, setTotalPages);
     } else {
@@ -107,11 +283,291 @@ const AllCards = () => {
     }
   };
 
+  const validatePerson = (person) => {
+    if (
+      !person.name ||
+      !hasAtLeastThreeWords(person.name) ||
+      !person.phone ||
+      !person.email ||
+      !person.address ||
+      !person.gender ||
+      !person.nationalID ||
+      !person.dateOfBirth ||
+      !person.nationality
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  const validateAccountStep = () => {
+    const nextErrors = {};
+    if (!accountData.phone) nextErrors.accountPhone = "رقم الهاتف مطلوب";
+    if (!accountData.name) nextErrors.accountName = "الاسم مطلوب";
+    if (!accountData.email) nextErrors.accountEmail = "الإيميل مطلوب";
+    if (!accountData.password) nextErrors.accountPassword = "كلمة المرور مطلوبة";
+    if (!accountData.productId) nextErrors.accountProduct = "اختر العضوية";
+    if (!accountData.type) nextErrors.accountType = "نوع العضوية غير صالح";
+    setFormErrors((prev) => ({ ...prev, ...nextErrors }));
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleOpenMembershipModal = () => {
+    resetMembershipForm();
+    setShowModal(true);
+  };
+
+  const handleCloseMembershipModal = () => {
+    setShowModal(false);
+    resetMembershipForm();
+  };
+
+  const handleAccountChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "productId") {
+      const selectedProduct = selectedMembershipProducts.find(
+        (item) => item._id === value
+      );
+      setAccountData((prev) => ({
+        ...prev,
+        productId: value,
+        type: selectedProduct?.type || "",
+      }));
+      return;
+    }
+    setAccountData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleMemberChange = (role, e) => {
+    const { name, value } = e.target;
+    setMemberForms((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], [name]: value },
+    }));
+  };
+
+  const handleMoveToMembers = () => {
+    if (!validateAccountStep()) return;
+    setFormErrors({});
+    setModalStep(2);
+    setActiveRoleStep(0);
+  };
+
+  const handleRoleNext = () => {
+    const currentRole = selectedRoles[activeRoleStep];
+    if (!validatePerson(memberForms[currentRole])) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [currentRole]: "برجاء استكمال كل البيانات والاسم ثلاثي",
+      }));
+      return;
+    }
+    setFormErrors((prev) => ({ ...prev, [currentRole]: "" }));
+    if (activeRoleStep < selectedRoles.length - 1) {
+      setActiveRoleStep((prev) => prev + 1);
+    }
+  };
+
+  const handleRoleBack = () => {
+    if (activeRoleStep > 0) setActiveRoleStep((prev) => prev - 1);
+  };
+
+  const validateAllByType = () => {
+    const roleOrder = requiredRolesByType[accountData.type] || ["father"];
+    const invalidRole = roleOrder.find((role) => !validatePerson(memberForms[role]));
+    if (invalidRole) {
+      setActiveRoleStep(roleOrder.indexOf(invalidRole));
+      setFormErrors((prev) => ({
+        ...prev,
+        [invalidRole]: "برجاء استكمال كل البيانات والاسم ثلاثي",
+      }));
+      return false;
+    }
+    return true;
+  };
+
+  const buildPayloadByType = () => {
+    const selectedProduct = selectedMembershipProducts.find(
+      (item) => item._id === accountData.productId
+    );
+    const type = normalizeMembershipType(accountData.type || selectedProduct?.type || "");
+    let data = {};
+    if (type === "Annual" || type === "Two-Year") {
+      data = { ...memberForms.father };
+      data.spouse = {};
+      data.members = [];
+      data.dateOfBirth = memberForms?.father?.dateOfBirth || "";
+    } else if (type === "Newlywed") {
+      data = { ...memberForms.father };
+      data.spouse = { ...memberForms.mother, relationship: "wife" };
+      data.members = [];
+      data.dateOfBirth = [
+        memberForms?.father?.dateOfBirth || "",
+        memberForms?.mother?.dateOfBirth || "",
+      ];
+    } else {
+      data = { ...memberForms.father };
+      data.members = [
+        { ...memberForms.mother, relationship: "wife" },
+        { ...memberForms.child1, relationship: "son" },
+        { ...memberForms.child2, relationship: "son" },
+      ];
+      data.spouse = {};
+      data.dateOfBirth = [
+        memberForms?.father?.dateOfBirth || "",
+        memberForms?.mother?.dateOfBirth || "",
+        memberForms?.child1?.dateOfBirth || "",
+        memberForms?.child2?.dateOfBirth || "",
+      ];
+    }
+    data.phone = accountData.phone;
+    data.name = accountData.name;
+    data.email = accountData.email;
+    data.password = accountData.password;
+    data.productId = accountData.productId;
+    data.type = type;
+    data.userData = {
+      phone: accountData.phone,
+      name: accountData.name,
+      email: accountData.email,
+      password: accountData.password,
+    };
+    data.cardData = {
+      productId: accountData.productId,
+      type,
+      dateOfBirth: data.dateOfBirth,
+    };
+    return data;
+  };
+
+  const handleMembershipSubmit = async (e) => {
+    e.preventDefault();
+    const selectedProduct = selectedMembershipProducts.find(
+      (item) => item._id === accountData.productId
+    );
+    const normalizedType = normalizeMembershipType(
+      accountData.type || selectedProduct?.type || ""
+    );
+    const isValidator = Validator(memberForms, normalizedType);
+    if (!isValidator) {
+      const roleOrder = requiredRolesByType[normalizedType] || ["father"];
+      const invalidRole = roleOrder.find(
+        (role) => !validatePerson(memberForms?.[role] || {})
+      );
+      if (invalidRole) {
+        setActiveRoleStep(roleOrder.indexOf(invalidRole));
+        setFormErrors((prev) => ({
+          ...prev,
+          [invalidRole]: "برجاء استكمال كل البيانات والاسم ثلاثي",
+        }));
+      }
+      return;
+    }
+    if (!validateAllByType()) return;
+    const payload = buildPayloadByType();
+    const submitResult = await AddCustomCard(
+      setLoading,
+      setError,
+      payload,
+      setShowModal,
+      getAllCards
+    );
+    if (submitResult?.success) {
+      setToast({
+        show: true,
+        type: "success",
+        message: "تم إضافة العضوية بنجاح",
+      });
+      resetMembershipForm();
+    } else {
+      setToast({
+        show: true,
+        type: "error",
+        message: submitResult?.message || "فشل إنشاء العضوية",
+      });
+    }
+  };
+
+  const renderMemberForm = (role) => {
+    const person = memberForms[role];
+    if (!person) return null;
+    return (
+      <div className="wizard-animate" key={role}>
+        <h3>{roleLabels[role]}</h3>
+        <div className="form-group">
+          <input
+            type="text"
+            name="name"
+            placeholder="الاسم ثلاثي"
+            value={person.name}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+          <input
+            type="text"
+            name="phone"
+            placeholder="رقم الهاتف"
+            value={person.phone}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="email"
+            name="email"
+            placeholder="البريد الإلكتروني"
+            value={person.email}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+          <input
+            type="text"
+            name="address"
+            placeholder="العنوان"
+            value={person.address}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+        </div>
+        <div className="form-group">
+          <select
+            name="gender"
+            value={person.gender}
+            onChange={(e) => handleMemberChange(role, e)}
+          >
+            <option value="">اختر النوع</option>
+            <option value="Male">ذكر</option>
+            <option value="Female">أنثى</option>
+          </select>
+          <input
+            type="text"
+            name="nationalID"
+            placeholder="الرقم القومي"
+            value={person.nationalID}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="date"
+            name="dateOfBirth"
+            value={person.dateOfBirth}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+          <input
+            type="text"
+            name="nationality"
+            placeholder="الجنسية"
+            value={person.nationality}
+            onChange={(e) => handleMemberChange(role, e)}
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="cards-page">
       <div className="card_header">
-        <button className="add-card-btn" onClick={openAddCutomCard}>
-          إضافة بطاقة
+        <button className="add-card-btn" onClick={handleOpenMembershipModal}>
+          إضافة عضوية جديدة
         </button>
         <input
           type="text"
@@ -129,86 +585,173 @@ const AllCards = () => {
           {loading ? "Searching..." : "بحث"}
         </button>
       </div>
+      {toast.show && (
+        <div className={`cards-toast ${toast.type}`}>
+          <span>{toast.message}</span>
+          <button
+            type="button"
+            onClick={() => setToast((prev) => ({ ...prev, show: false }))}
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal">
-            <h2>إضافة بطاقة جديدة</h2>
-            <form onSubmit={handleSubmit} className="form two-columns-form">
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="الاسم"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="phone"
-                  placeholder="الرقم"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="date"
-                  name="dateOfBirth"
-                  placeholder="التاريخ"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                />
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                >
-                  <option value="">اختر الجنس</option>
-                  <option value="Male">ذكر</option>
-                  <option value="Female">أنثى</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="العنوان"
-                  value={formData.address}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="nationalID"
-                  placeholder="الرقم القومي"
-                  value={formData.nationalID}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="nationality"
-                  placeholder="الجنسية"
-                  value={formData.nationality}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="email"
-                  placeholder="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
+          <div className="modal wizard-modal">
+            <h2>إضافة عضوية جديدة</h2>
+            <p className="wizard-subtitle">
+              المرحلة {modalStep} من 2
+              {modalStep === 2 && accountData.type
+                ? ` - ${accountData.type}`
+                : ""}
+            </p>
+            <form onSubmit={handleMembershipSubmit} className="form two-columns-form">
+              {modalStep === 1 && (
+                <div className="wizard-animate">
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="الاسم"
+                      value={accountData.name}
+                      onChange={handleAccountChange}
+                    />
+                    <input
+                      type="text"
+                      name="phone"
+                      placeholder="رقم الهاتف"
+                      value={accountData.phone}
+                      onChange={handleAccountChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="البريد الإلكتروني"
+                      value={accountData.email}
+                      onChange={handleAccountChange}
+                    />
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="كلمة المرور"
+                      value={accountData.password}
+                      onChange={handleAccountChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={accountData.dateOfBirth}
+                      onChange={handleAccountChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <select
+                      name="productId"
+                      value={accountData.productId}
+                      onChange={handleAccountChange}
+                    >
+                      <option value="">اختر العضوية / البطاقة</option>
+                      {selectedMembershipProducts.map((item) => (
+                        <option key={item._id} value={item._id}>
+                          {item.name?.ar || item.name?.en || item.type} - {item.type}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={accountData.type || "يتم تحديد النوع تلقائيًا"}
+                      readOnly
+                    />
+                  </div>
+                  {(formErrors.accountPhone ||
+                    formErrors.accountName ||
+                    formErrors.accountEmail ||
+                    formErrors.accountPassword ||
+                    formErrors.accountDateOfBirth ||
+                    formErrors.accountType ||
+                    formErrors.accountProduct) && (
+                    <p className="wizard-error">
+                      {formErrors.accountPhone ||
+                        formErrors.accountName ||
+                        formErrors.accountEmail ||
+                        formErrors.accountPassword ||
+                        formErrors.accountDateOfBirth ||
+                        formErrors.accountType ||
+                        formErrors.accountProduct}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {modalStep === 2 && (
+                <>
+                  <div className="role-steps">
+                    {selectedRoles.map((role, idx) => (
+                      <button
+                        type="button"
+                        key={role}
+                        className={`role-step-btn ${
+                          idx === activeRoleStep ? "active" : ""
+                        }`}
+                        onClick={() => setActiveRoleStep(idx)}
+                      >
+                        {idx + 1}. {roleLabels[role]}
+                      </button>
+                    ))}
+                  </div>
+                  {renderMemberForm(selectedRoles[activeRoleStep])}
+                  {formErrors[selectedRoles[activeRoleStep]] && (
+                    <p className="wizard-error">
+                      {formErrors[selectedRoles[activeRoleStep]]}
+                    </p>
+                  )}
+                </>
+              )}
+
               <div className="modal-buttons">
-                <button type="submit" className="save-btn">
-                  {loading ? "Loading..." : "حفظ البطاقة"}
-                </button>
+                {modalStep === 1 ? (
+                  <button
+                    type="button"
+                    className="save-btn"
+                    onClick={handleMoveToMembers}
+                  >
+                    التالي
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="back-btn"
+                      onClick={handleRoleBack}
+                      disabled={activeRoleStep === 0}
+                    >
+                      السابق
+                    </button>
+                    {activeRoleStep < selectedRoles.length - 1 ? (
+                      <button
+                        type="button"
+                        className="save-btn"
+                        onClick={handleRoleNext}
+                      >
+                        حفظ والانتقال
+                      </button>
+                    ) : (
+                      <button type="submit" className="save-btn">
+                        {loading ? "جاري الحفظ..." : "إنشاء العضوية"}
+                      </button>
+                    )}
+                  </>
+                )}
                 <button
                   type="button"
                   className="cancel-btn"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleCloseMembershipModal}
                 >
                   إلغاء
                 </button>
@@ -240,10 +783,10 @@ const AllCards = () => {
                     <label>
                       <input
                         type="checkbox"
-                        checked={selectedFilters.includes("Newelyed")}
-                        onChange={() => handleFilterSelect("Newelyed")}
+                        checked={selectedFilters.includes("Newlywed")}
+                        onChange={() => handleFilterSelect("Newlywed")}
                       />
-                      Newelyed
+                      Newlywed
                     </label>
                   </div>
                 </div>
@@ -252,10 +795,10 @@ const AllCards = () => {
                     <label>
                       <input
                         type="checkbox"
-                        checked={selectedFilters.includes("Two-year")}
-                        onChange={() => handleFilterSelect("Two-year")}
+                        checked={selectedFilters.includes("Two-Year")}
+                        onChange={() => handleFilterSelect("Two-Year")}
                       />
-                      Two-year
+                      Two-Year
                     </label>
                   </div>
                   <div>
@@ -336,7 +879,6 @@ const AllCards = () => {
         </table>
       </div>
 
-      {/* ✅ أزرار تغيير الصفحة */}
       <div className="paginatoin_container">
         <button
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}

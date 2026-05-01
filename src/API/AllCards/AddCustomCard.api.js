@@ -1,39 +1,48 @@
-const URL = "https://glow-card.onrender.com/api/v1/card/create/";
-const token = localStorage.getItem('token');
-const AddCustomCard = async (setloading, setError, formData, setShowModal, getAllCards, cutomId) => {
+const URL = "https://glow-card.onrender.com/api/v1/card/admin/create";
+const AddCustomCard = async (setloading, setError, formData, setShowModal, getAllCards) => {
     setloading(true)
     try {
-        const response = await fetch(`${URL}${cutomId}`, {
+        const token = localStorage.getItem('token');
+        console.log("[AllCards][create] payload", formData);
+        const response = await fetch(URL, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
-                "authorization": `glowONW${token}`
+                "authorization": `glowONW${token}`,
+                "accept-language": "ar"
             },
             body: JSON.stringify(formData)
         });
 
         const result = await response.json();
-        console.log(result);
+        console.log("[AllCards][create] response", result);
 
         if (response.ok) {
             setloading(false);
             setShowModal(false);
             getAllCards();
+            return {
+                success: true,
+                message: result?.message || "تم إنشاء العضوية بنجاح",
+            };
         } else {
-            if (response.status == 403) {
-                setError(result.message)
-                setloading(false);
-            } else if (response.status == 500) {
-                console.log(result.message);
-                setError(result.message)
-                setloading(false);
-            }
+            const errorMessage = result?.error || result?.message || "Failed to add membership";
+            setError(errorMessage);
             setloading(false)
+            return {
+                success: false,
+                message: errorMessage,
+            };
         }
     } catch (error) {
-        setError('An error occurred');
+        const errorMessage = "حدث خطأ أثناء الاتصال بالسيرفر";
+        setError(errorMessage);
         setloading(false)
         console.log(error);
+        return {
+            success: false,
+            message: errorMessage,
+        };
     }
 }
 
