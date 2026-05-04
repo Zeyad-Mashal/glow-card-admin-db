@@ -4,6 +4,7 @@ import AddAds from "../../API/Ads/AddAds.api";
 import GetBanners from "../../API/Ads/GetBanners.api";
 import DeleteAds from "../../API/Ads/DeleteAds.api";
 import UpdateAds from "../../API/Ads/UpdateAds.api";
+import GetCities from "../../API/City/GetCities.api";
 const Ads = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -17,10 +18,17 @@ const Ads = () => {
 
   const [allBanners, setAllBanners] = useState([]);
   const [selectedBanner, setSelectedBanner] = useState(null); // للإعلان اللي هنعدله أو نحذفه
-
+  const [allCities, setAllCities] = useState([]);
+  const [cityId, setCityId] = useState("");
+  const [adLanguage, setAdLanguage] = useState("ar");
   useEffect(() => {
     getAllBanners();
+    getAllCities();
   }, []);
+
+  const getAllCities = () => {
+    GetCities(setLoading, setError, setAllCities);
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -40,7 +48,9 @@ const Ads = () => {
     const data = new FormData();
     data.append("image", adImage);
     data.append("url", adLink);
-
+    data.append("city", cityId);
+    data.append("lang", adLanguage);
+    setCityId(allCities[0]._id);
     if (showEditModal && selectedBanner) {
       // تعديل
       UpdateAds(
@@ -49,7 +59,7 @@ const Ads = () => {
         adsId,
         setShowEditModal,
         data,
-        getAllBanners
+        getAllBanners,
       );
     } else {
       // إضافة جديد
@@ -76,6 +86,8 @@ const Ads = () => {
     setAdImage(null); // مش هنحط صورة، المستخدم يرفع صورة جديدة لو عايز
     setShowEditModal(true);
     setAdsId(banner._id);
+    setCityId(banner.city);
+    setAdLanguage(banner.lang);
   };
 
   const UpdateAdsApi = (e) => {
@@ -88,6 +100,8 @@ const Ads = () => {
     const data = new FormData();
     data.append("image", adImage);
     data.append("url", adLink);
+    data.append("city", cityId);
+    data.append("lang", adLanguage);
   };
 
   return (
@@ -125,6 +139,17 @@ const Ads = () => {
               )}
 
               <div className="form-group">
+                <label>المدينة:</label>
+                <select onChange={(e) => setCityId(e.target.value)}>
+                  {allCities.map((item) => {
+                    return <option value={item._id}>{item.name.ar}</option>;
+                  })}
+                </select>
+                <label>اللغة:</label>
+                <select onChange={(e) => setAdLanguage(e.target.value)}>
+                  <option value="ar">العربية</option>
+                  <option value="en">الإنجليزية</option>
+                </select>
                 <label>رابط الإعلان:</label>
                 <input
                   type="text"
@@ -139,8 +164,8 @@ const Ads = () => {
                   {loading
                     ? "جاري الحفظ..."
                     : showEditModal
-                    ? "تعديل الإعلان"
-                    : "حفظ الإعلان"}
+                      ? "تعديل الإعلان"
+                      : "حفظ الإعلان"}
                 </button>
                 <button
                   type="button"
