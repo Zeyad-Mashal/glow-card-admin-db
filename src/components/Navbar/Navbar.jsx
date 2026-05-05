@@ -111,8 +111,8 @@ const Navbar = ({ collapsed, setCollapsed }) => {
           </Link>
         </li>
         <li onClick={logout}>
-          <Link to="/login">
-            <FontAwesomeIcon icon={faSignInAlt} /> <span>تسجيل الدخول</span>
+          <Link to="#">
+            <FontAwesomeIcon icon={faSignInAlt} /> <span>تسجيل خروج</span>
           </Link>
         </li>
       </ul>
