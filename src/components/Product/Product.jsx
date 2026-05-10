@@ -28,6 +28,7 @@ const Product = () => {
   });
 
   const [allFiles, setAllFiles] = useState([]); // لتخزين الملفات ليتم إرسالها للـ API
+  const [includeInOffers, setIncludeInOffers] = useState(false);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -81,9 +82,18 @@ const Product = () => {
     data.append("discount", formData.discount);
     data.append("originalPrice", formData.priceBefore);
     data.append("type", formData.type);
-    // data.append("offers", true);
+    if (includeInOffers) {
+      data.append("offers", "true");
+    }
 
-    AddProduct(setLoading, setError, data, setShowAddModal, getAllProducts);
+    AddProduct(
+      setLoading,
+      setError,
+      data,
+      setShowAddModal,
+      getAllProducts,
+      includeInOffers
+    );
   };
 
   const openDelete = (item) => {
@@ -123,6 +133,7 @@ const Product = () => {
     setAllFiles([]);
 
     setProductId(item._id);
+    setIncludeInOffers(Boolean(item.offers ?? item.inOffers));
   };
 
   const handleUpdateSubmit = (e) => {
@@ -159,6 +170,9 @@ const Product = () => {
     data.append("discount", formData.discount);
     data.append("originalPrice", formData.priceBefore);
     data.append("type", formData.type);
+    if (includeInOffers) {
+      data.append("offers", "true");
+    }
 
     UpdateProduct(
       setLoading,
@@ -166,7 +180,8 @@ const Product = () => {
       productId,
       setShowEditModal,
       data,
-      getAllProducts
+      getAllProducts,
+      includeInOffers
     );
   };
 
@@ -176,7 +191,13 @@ const Product = () => {
 
   return (
     <div className="product-container">
-      <button className="add-product-btn" onClick={() => setShowAddModal(true)}>
+      <button
+        className="add-product-btn"
+        onClick={() => {
+          setIncludeInOffers(false);
+          setShowAddModal(true);
+        }}
+      >
         إضافة منتج
       </button>
 
@@ -300,6 +321,17 @@ const Product = () => {
                 </select>
               </div>
 
+              <div className="form-group offers-checkbox-group">
+                <label className="offers-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={includeInOffers}
+                    onChange={(e) => setIncludeInOffers(e.target.checked)}
+                  />
+                  أضف إلى قسم العروض
+                </label>
+              </div>
+
               {error && <p className="error">{error}</p>}
 
               <div className="modal-buttons">
@@ -312,6 +344,7 @@ const Product = () => {
                   onClick={() => {
                     setShowAddModal(false);
                     setShowEditModal(false);
+                    setIncludeInOffers(false);
                   }}
                 >
                   إلغاء

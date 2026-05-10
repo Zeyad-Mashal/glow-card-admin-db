@@ -62,6 +62,24 @@
   flex: 1;
 }
 
+.offers-checkbox-group {
+  margin-bottom: 12px;
+}
+
+.offers-checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.offers-checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
 .modal label {
   font-weight: bold;
   margin-bottom: 5px;

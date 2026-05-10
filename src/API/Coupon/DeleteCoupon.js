@@ -1,8 +1,8 @@
 const URL = "https://glow-card.onrender.com/api/v1/coupon/delete/";
-const token = localStorage.getItem('token');
 const DeleteCoupon = async (setLoading, setError, id, setModal, getAllCoupons) => {
     setLoading(true)
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${URL}${id}`, {
             method: 'DELETE',
             headers: {
@@ -15,7 +15,7 @@ const DeleteCoupon = async (setLoading, setError, id, setModal, getAllCoupons) =
 
         if (response.ok) {
             setLoading(false);
-            setModal(false);
+            setModal({ type: null, open: false, id: null });
             getAllCoupons()
         } else {
             if (response.status == 404) {

@@ -1,9 +1,9 @@
 const URL = "https://glow-card.onrender.com/api/v1/coupon/get";
-const token = localStorage.getItem('token');
 
 const GetCoupons = async (setloading, setError, setAllCoupons) => {
     setloading(true)
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(URL, {
             method: 'GET',
             headers: {

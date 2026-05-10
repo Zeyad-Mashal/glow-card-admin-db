@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./Coupon.css";
 import CreateCoupon from "../../API/Coupon/CreateCoupon";
 import GetCoupons from "../../API/Coupon/GetCoupons";
 import EditCoupon from "../../API/Coupon/EditCoupon";
 import DeleteCoupon from "../../API/Coupon/DeleteCoupon";
-/* شكل الكوبون الابتدائي */
+import GetProducts from "../../API/AddProduct/GetProducts.api";
+
 const initForm = {
   coupon: "",
   discount: "",
   startingDate: "",
   expiryDate: "",
+  type: "",
+  maxUses: "",
 };
 
 const Coupon = () => {
-  /* الحالة */
   useEffect(() => {
     getAllCoupons();
   }, []);
@@ -24,96 +26,152 @@ const Coupon = () => {
   const [loading, setloading] = useState(false);
   const [error, setError] = useState("");
   const [allCoupons, setAllCoupons] = useState([]);
-  /* فتح المودالات */
-  const openAdd = () => (
-    setForm(initForm), setModal({ type: "add", open: true, id: null })
-  );
-  const openEdit = (c) => {
-    setForm({ ...c });
-    setModal({ type: "edit", open: true, id: c._id });
-  };
-  const openDel = (c) => setModal({ type: "del", open: true, id: c._id });
-  const closeModal = () => setModal({ type: null, open: false, id: null });
+  const [allProducts, setAllProducts] = useState([]);
 
-  /* تغيّر الحقول */
+  useEffect(() => {
+    GetProducts(() => {}, setError, setAllProducts);
+  }, []);
+
+  const membershipTypesFromApi = useMemo(() => {
+    const types = [
+      ...new Set((allProducts || []).map((p) => p.type).filter(Boolean)),
+    ];
+    return types.sort((a, b) => String(a).localeCompare(String(b)));
+  }, [allProducts]);
+
+  const openAdd = () => (
+    setError(""),
+    setForm(initForm),
+    setModal({ type: "add", open: true, id: null })
+  );
+
+  const openEdit = (c) => {
+    setError("");
+    const id = c._id ?? c.id;
+    setForm({
+      coupon: c.coupon ?? "",
+      discount: c.discount != null ? String(c.discount) : "",
+      startingDate: c.startingDate ?? "",
+      expiryDate: c.expiryDate ?? "",
+      type: c.type ?? "",
+      maxUses: c.maxUses != null ? String(c.maxUses) : "",
+    });
+    setModal({ type: "edit", open: true, id });
+  };
+
+  const openDel = (c) =>
+    setModal({ type: "del", open: true, id: c._id ?? c.id });
+  const closeModal = () => {
+    setError("");
+    setModal({ type: null, open: false, id: null });
+  };
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  /* إضافة كوبون */
   const handleAdd = () => {
-    const { coupon, discount, startingDate, expiryDate } = form;
+    const { coupon, discount, startingDate, expiryDate, type, maxUses } = form;
 
-    // تحقُّق أولي
-    if (!coupon.trim() || !discount || !startingDate || !expiryDate) return;
+    const typeTrimmed = String(type ?? "").trim();
+    const maxUsesTrimmed = String(maxUses ?? "").trim();
 
-    /* الشكل النهائي للكائن المرسل */
+    if (
+      !coupon.trim() ||
+      !discount ||
+      !startingDate ||
+      !expiryDate ||
+      !typeTrimmed ||
+      maxUsesTrimmed === ""
+    ) {
+      return;
+    }
+
+    const maxUsesInt = parseInt(maxUsesTrimmed, 10);
+    if (!Number.isFinite(maxUsesInt) || maxUsesInt < 1) return;
+
     const data = {
-      coupon: coupon.trim(), // "cv56Kc"
-      discount: Number(discount), // 15
-      startingDate, // "2025-07-01"
-      expiryDate, // "2025-07-06"
-      active: true, // مبدئيًا مفعَّل
+      coupon: coupon.trim(),
+      discount: Number(discount),
+      startingDate,
+      expiryDate,
+      active: true,
+      type: typeTrimmed,
+      maxUses: maxUsesInt,
     };
 
-    // إضافة محلية سريعة (اختياري)
+    console.log("[Coupon][add] payload", JSON.stringify(data));
+
     setCoupons([...coupons, { ...data, id: Date.now() }]);
 
-    // استدعاء الـ API
     CreateCoupon(setloading, setError, data, setModal, getAllCoupons);
   };
 
-  /* تعديل كوبون */
   const handleUpdate = () => {
-    const id = modal.id; // ← الـ id المحفوظ
+    const id = modal.id;
 
-    // تحقُّق سريع من إدخال القيم
-    if (!form.coupon.trim() || !form.discount) return;
+    if (
+      !form.coupon.trim() ||
+      !form.discount ||
+      !form.startingDate ||
+      !form.expiryDate ||
+      !form.type ||
+      form.maxUses === ""
+    ) {
+      return;
+    }
 
-    /* الكائن المطلوب للـ API */
+    const typeTrimmed = String(form.type ?? "").trim();
+    const maxUsesTrimmed = String(form.maxUses ?? "").trim();
+    const maxUsesInt = parseInt(maxUsesTrimmed, 10);
+    if (!Number.isFinite(maxUsesInt) || maxUsesInt < 1) return;
+
     const data = {
-      coupon: form.coupon.trim(), // "cv56Kc"
-      discount: Number(form.discount), // 15
+      coupon: form.coupon.trim(),
+      discount: Number(form.discount),
+      startingDate: form.startingDate,
+      expiryDate: form.expiryDate,
+      type: typeTrimmed,
+      maxUses: maxUsesInt,
     };
 
-    // تحدّث الحالة محلياً (اختياري إذا كنت تجلب بعد التعديل)
-    setCoupons(coupons.map((c) => (c.id === id ? { ...c, ...data } : c)));
+    console.log("[Coupon][edit] payload", JSON.stringify(data));
 
-    // استدعاء خدمة التعديل
+    setCoupons(
+      coupons.map((c) =>
+        (c._id ?? c.id) === id ? { ...c, ...data } : c
+      )
+    );
+
     EditCoupon(setloading, setError, id, setModal, getAllCoupons, data);
-
-    // إغلاق المودال
-    closeModal();
   };
 
-  /* حذف كوبون */
   const handleDelete = () => {
     const id = modal.id;
-    setCoupons(coupons.filter((c) => c.id !== id));
+    setCoupons(coupons.filter((c) => (c._id ?? c.id) !== id));
     DeleteCoupon(setloading, setError, id, setModal, getAllCoupons);
-    closeModal();
   };
 
-  /* تفعيل / إيقاف */
   const toggleActive = (id) => {
     setCoupons(
-      coupons.map((c) => (c.id === id ? { ...c, active: !c.active } : c))
+      coupons.map((c) =>
+        (c._id ?? c.id) === id ? { ...c, active: !c.active } : c
+      )
     );
-    // استدعِ API التفعيل هنا: ToggleCouponApi(...)
   };
+
   const getAllCoupons = () => {
     GetCoupons(setloading, setError, setAllCoupons);
   };
+
   return (
     <div className="coupon">
       <div className="coupon_container">
         <h1>كوبونات الخصم</h1>
 
-        {/* زر إضافة */}
         <button className="btn primary" onClick={openAdd}>
           إضافة كوبون
         </button>
 
-        {/* جدول الكوبونات */}
         <div className="table_wrapper">
           {allCoupons.length ? (
             <table>
@@ -121,7 +179,9 @@ const Coupon = () => {
                 <tr>
                   <th>#</th>
                   <th>الكوبون</th>
-                  <th>الخصم %</th>
+                  <th>الخصم&nbsp;%</th>
+                  <th>نوع العضوية</th>
+                  <th>عدد الاستخدامات</th>
                   <th>تاريخ البداية</th>
                   <th>تاريخ الانتهاء</th>
                   <th>الحالة</th>
@@ -129,33 +189,41 @@ const Coupon = () => {
                 </tr>
               </thead>
               <tbody>
-                {allCoupons.map((c, i) => (
-                  <tr key={c.id}>
-                    <td>{i + 1}</td>
-                    <td>{c.coupon}</td>
-                    <td>{c.discount}</td>
-                    <td>{c.startingDate}</td>
-                    <td>{c.expiryDate}</td>
-                    <td>
-                      <label className="switch">
-                        <input
-                          type="checkbox"
-                          checked={c.active}
-                          onChange={() => toggleActive(c.id)}
-                        />
-                        <span className="slider"></span>
-                      </label>
-                    </td>
-                    <td>
-                      <button className="btn" onClick={() => openEdit(c)}>
-                        تعديل
-                      </button>
-                      <button className="btn danger" onClick={() => openDel(c)}>
-                        حذف
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {allCoupons.map((c, i) => {
+                  const rowId = c._id ?? c.id;
+                  return (
+                    <tr key={rowId}>
+                      <td>{i + 1}</td>
+                      <td>{c.coupon}</td>
+                      <td>{c.discount}</td>
+                      <td>{c.type ?? "—"}</td>
+                      <td>{c.maxUses ?? "—"}</td>
+                      <td>{c.startingDate}</td>
+                      <td>{c.expiryDate}</td>
+                      <td>
+                        <label className="switch">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(c.active)}
+                            onChange={() => toggleActive(rowId)}
+                          />
+                          <span className="slider"></span>
+                        </label>
+                      </td>
+                      <td>
+                        <button className="btn" onClick={() => openEdit(c)}>
+                          تعديل
+                        </button>
+                        <button
+                          className="btn danger"
+                          onClick={() => openDel(c)}
+                        >
+                          حذف
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (
@@ -164,7 +232,6 @@ const Coupon = () => {
         </div>
       </div>
 
-      {/* المودال */}
       {modal.open && (
         <div className="modal_backdrop" onClick={closeModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -173,6 +240,7 @@ const Coupon = () => {
                 <h2>إضافة كوبون</h2>
                 <ModalForm
                   form={form}
+                  membershipTypes={membershipTypesFromApi}
                   onChange={handleChange}
                   onSubmit={handleAdd}
                   submitLabel="إضافة"
@@ -186,6 +254,7 @@ const Coupon = () => {
                 <h2>تعديل كوبون</h2>
                 <ModalForm
                   form={form}
+                  membershipTypes={membershipTypesFromApi}
                   onChange={handleChange}
                   onSubmit={handleUpdate}
                   submitLabel="حفظ"
@@ -211,12 +280,19 @@ const Coupon = () => {
           </div>
         </div>
       )}
+      {error ? <p className="coupon-page-error">{error}</p> : null}
     </div>
   );
 };
 
-/* نموذج داخل المودال */
-const ModalForm = ({ form, onChange, onSubmit, submitLabel, onCancel }) => (
+const ModalForm = ({
+  form,
+  membershipTypes,
+  onChange,
+  onSubmit,
+  submitLabel,
+  onCancel,
+}) => (
   <form
     onSubmit={(e) => {
       e.preventDefault();
@@ -243,6 +319,32 @@ const ModalForm = ({ form, onChange, onSubmit, submitLabel, onCancel }) => (
         value={form.discount}
         onChange={onChange}
         required
+      />
+    </label>
+    <label>
+      Membership type <span className="coupon-required-star">*</span>
+      <select name="type" value={form.type} onChange={onChange} required>
+        <option value="">Select membership type</option>
+        <option value="All">All</option>
+        {membershipTypes.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+      </select>
+    </label>
+    <label>
+      Max uses (عدد الاستخدامات){" "}
+      <span className="coupon-required-star">*</span>
+      <input
+        type="number"
+        name="maxUses"
+        min="1"
+        step="1"
+        value={form.maxUses}
+        onChange={onChange}
+        required
+        placeholder="e.g. 100"
       />
     </label>
     <label>

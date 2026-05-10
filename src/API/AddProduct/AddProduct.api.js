@@ -1,9 +1,35 @@
 const URL = "https://glow-card.onrender.com/api/v1/product/add";
-const token = localStorage.getItem('token');
-const AddProduct = async (setloading, setError, data, setShowAddModal, getAllProducts) => {
+
+const buildUrlWithOffers = (baseUrl, wantsOffers) => {
+    if (!wantsOffers) return baseUrl;
+    try {
+        const u = new URL(baseUrl);
+        u.searchParams.set("offers", "true");
+        return u.toString();
+    } catch {
+        const sep = baseUrl.includes("?") ? "&" : "?";
+        return `${baseUrl}${sep}offers=true`;
+    }
+};
+
+const AddProduct = async (
+    setloading,
+    setError,
+    data,
+    setShowAddModal,
+    getAllProducts,
+    offers = false
+) => {
+    const wantsOffers =
+        offers === true || offers === "true" || offers === 1;
     setloading(true)
     try {
-        const response = await fetch(URL, {
+        const token = localStorage.getItem('token');
+        const requestUrl = buildUrlWithOffers(URL, wantsOffers);
+        if (wantsOffers) {
+            console.log("[Product][add] offers=true URL:", requestUrl);
+        }
+        const response = await fetch(requestUrl, {
             method: 'POST',
             headers: {
                 "authorization": `glowONW${token}`
