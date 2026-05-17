@@ -1,4 +1,4 @@
-const URL = "https://glow-card.onrender.com/api/v1/ads/get";
+const URL = "https://glow-card.onrender.com/api/v1/ads/get?type=All";
 
 const GetBanners = async (setloading, setError, setAllBanners) => {
     setloading(true)
